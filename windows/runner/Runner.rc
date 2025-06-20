@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "startnest" "\0"
+            VALUE "FileDescription", "子敬園一點通" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "startnest" "\0"
+            VALUE "InternalName", "子敬園一點通" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "startnest.exe" "\0"
-            VALUE "ProductName", "startnest" "\0"
+            VALUE "OriginalFilename", "子敬園一點通.exe" "\0"
+            VALUE "ProductName", "子敬園一點通" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

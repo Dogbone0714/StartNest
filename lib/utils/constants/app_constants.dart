@@ -1,6 +1,6 @@
 class AppConstants {
   // 應用名稱
-  static const String appName = '子敬園一指通';
+  static const String appName = '子敬園一點通';
   
   // 用戶角色
   static const String roleResident = '住戶';
