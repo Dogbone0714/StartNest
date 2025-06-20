@@ -19,21 +19,21 @@ class ServerpodClientService {
           'name': '康皓雄',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '5667',
+          'unit': '56-6號7樓',
         },
         'resident2': {
           'password': 'resident123',
           'name': '李小華',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '2202',
+          'unit': '119-2號2樓',
         },
         'resident3': {
           'password': 'resident123',
           'name': '王美玲',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '3303',
+          'unit': '56-3號3樓',
         },
       };
 
@@ -76,21 +76,21 @@ class ServerpodClientService {
           'name': '康皓雄',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '5667',
+          'unit': '56-6號7樓',
         },
         'resident2': {
           'password': 'resident123',
           'name': '李小華',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '2202',
+          'unit': '119-2號2樓',
         },
         'resident3': {
           'password': 'resident123',
           'name': '王美玲',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '3303',
+          'unit': '56-3號3樓',
         },
       };
 
@@ -132,21 +132,21 @@ class ServerpodClientService {
           'name': '康皓雄',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '5667',
+          'unit': '56-6號7樓',
         },
         'resident2': {
           'password': 'resident123',
           'name': '李小華',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '2202',
+          'unit': '119-2號2樓',
         },
         'resident3': {
           'password': 'resident123',
           'name': '王美玲',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '3303',
+          'unit': '56-3號3樓',
         },
       };
 
@@ -189,28 +189,28 @@ class ServerpodClientService {
           'name': '康皓雄',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '5667',
+          'unit': '56-6號7樓',
         },
         'resident2': {
           'password': 'resident123',
           'name': '李小華',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '2202',
+          'unit': '119-2號2樓',
         },
         'resident3': {
           'password': 'resident123',
           'name': '王美玲',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '3303',
+          'unit': '56-3號3樓',
         },
         'newuser123': {
           'password': 'newuser123',
           'name': '張小明',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '1101',
+          'unit': '119-1號1樓',
         },
       };
 
@@ -326,7 +326,7 @@ class ServerpodClientService {
           'isUsed': false,
           'usedBy': null,
           'usedAt': null,
-          'unit': '1101',
+          'unit': '119-1號1樓',
           'isExpired': false,
           'isValid': true,
         },
@@ -338,7 +338,7 @@ class ServerpodClientService {
           'isUsed': false,
           'usedBy': null,
           'usedAt': null,
-          'unit': '2202',
+          'unit': '56-2號2樓',
           'isExpired': false,
           'isValid': true,
         },
@@ -350,7 +350,7 @@ class ServerpodClientService {
           'isUsed': false,
           'usedBy': null,
           'usedAt': null,
-          'unit': '3303',
+          'unit': '56-3號3樓',
           'isExpired': true,
           'isValid': false,
         },
@@ -362,7 +362,7 @@ class ServerpodClientService {
           'isUsed': true,
           'usedBy': 'newuser123',
           'usedAt': DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
-          'unit': '4404',
+          'unit': '119-4號4樓',
           'isExpired': false,
           'isValid': false,
         },
@@ -401,13 +401,13 @@ class ServerpodClientService {
         return {
           'success': true,
           'message': '邀請碼有效',
-          'unit': '1101',
+          'unit': '119-1號1樓',
         };
       } else if (code == 'DEF456') {
         return {
           'success': true,
           'message': '邀請碼有效',
-          'unit': '2202',
+          'unit': '56-2號2樓',
         };
       } else {
         return {'success': false, 'message': '邀請碼不存在或已過期'};

@@ -239,7 +239,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _unitController,
                 decoration: const InputDecoration(
                   labelText: '房號 *',
-                  hintText: '請輸入房號（如：1101）',
+                  hintText: '請輸入房號（如：56-1號1樓、119-2號2樓）',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.home),
                 ),
@@ -247,9 +247,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (value == null || value.trim().isEmpty) {
                     return '請輸入房號';
                   }
-                  // 驗證房號格式（純數字）
-                  if (!RegExp(r'^\d+$').hasMatch(value.trim())) {
-                    return '房號只能包含數字';
+                  // 驗證房號格式（56-*號*樓 或 119-*號*樓）
+                  if (!RegExp(r'^(56|119)-\d+號\d+樓$').hasMatch(value.trim())) {
+                    return '房號格式：56-*號*樓 或 119-*號*樓';
                   }
                   return null;
                 },
