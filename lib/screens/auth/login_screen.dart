@@ -203,27 +203,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                           ),
                         ),
-                        const SizedBox(height: AppConstants.paddingLarge),
-
-                        // 測試帳號提示
-                        Container(
-                          padding: const EdgeInsets.all(AppConstants.paddingMedium),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
-                          ),
-                          child: const Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '測試帳號：',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              Text('管理員：admin / admin123'),
-                              Text('住戶：resident1 / resident123'),
-                            ],
-                          ),
-                        ),
                       ],
                     ),
                   ),

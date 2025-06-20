@@ -104,10 +104,10 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/icons/app_icon_1024.png"
+  image_path: "assets/icons/app_icon_1024.jpg"
   min_sdk_android: 21
   web:
     generate: true
-    image_path: "assets/icons/app_icon_1024.png"
+    image_path: "assets/icons/app_icon_1024.jpg"
     background_color: "#4CAF50"
     theme_color: "#4CAF50"
