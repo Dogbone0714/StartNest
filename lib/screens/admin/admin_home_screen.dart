@@ -33,7 +33,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     
     return Scaffold(
       appBar: AppBar(
-        title: Text('管理員 - ${authService.userName}'),
+        title: Text('子敬園管理 - ${authService.userName}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications),

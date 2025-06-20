@@ -98,12 +98,12 @@ class ResidentDashboard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '歡迎回家！',
+                    '歡迎回到子敬園！',
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: AppConstants.paddingSmall),
                   Text(
-                    '${userInfo?['name'] ?? ''} - ${userInfo?['building'] ?? ''}${userInfo?['unit'] ?? ''}',
+                    '${userInfo?['name'] ?? ''} - ${userInfo?['unit'] ?? ''}',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ],
@@ -187,7 +187,7 @@ class ResidentDashboard extends StatelessWidget {
             child: ListTile(
               leading: const Icon(Icons.announcement, color: Colors.orange),
               title: const Text('電梯維護通知'),
-              subtitle: const Text('A棟電梯將於明日進行年度維護...'),
+              subtitle: const Text('子敬園電梯將於明日進行年度維護...'),
               trailing: const Text('2小時前'),
               onTap: () {
                 Navigator.of(context).push(

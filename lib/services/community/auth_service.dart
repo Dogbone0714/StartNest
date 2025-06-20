@@ -12,28 +12,35 @@ class AuthService extends ChangeNotifier {
   String get userRole => _userRole;
   String get userName => _userName;
 
-  // 模擬用戶數據
+  // 模擬用戶數據 - 子敬園住戶
   static const Map<String, Map<String, dynamic>> _mockUsers = {
     'admin': {
       'password': 'admin123',
       'role': '管理員',
       'name': '管理員',
-      'building': 'A棟',
+      'building': '子敬園',
       'unit': '管理室',
     },
     'resident1': {
       'password': 'resident123',
       'role': '住戶',
       'name': '張小明',
-      'building': 'A棟',
-      'unit': '1001',
+      'building': '子敬園',
+      'unit': 'A棟1001',
     },
     'resident2': {
       'password': 'resident123',
       'role': '住戶',
       'name': '李小華',
-      'building': 'B棟',
-      'unit': '2002',
+      'building': '子敬園',
+      'unit': 'B棟2002',
+    },
+    'resident3': {
+      'password': 'resident123',
+      'role': '住戶',
+      'name': '王美玲',
+      'building': '子敬園',
+      'unit': 'C棟3003',
     },
   };
 

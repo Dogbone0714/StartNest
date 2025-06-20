@@ -1,5 +1,5 @@
-name: community_management
-description: "社區大樓管理系統"
+name: community_garden_app
+description: "子敬園一指通 - 社區大樓管理系統"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
