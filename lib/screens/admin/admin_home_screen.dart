@@ -7,6 +7,7 @@ import 'admin_maintenance_screen.dart';
 import 'admin_residents_screen.dart';
 import 'admin_visitors_screen.dart';
 import 'admin_profile_screen.dart';
+import 'admin_invitation_codes_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -24,6 +25,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     const AdminMaintenanceScreen(),
     const AdminResidentsScreen(),
     const AdminVisitorsScreen(),
+    const AdminInvitationCodesScreen(),
     const AdminProfileScreen(),
   ];
 
@@ -72,6 +74,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.people_outline),
             label: '訪客',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.qr_code),
+            label: '邀請碼',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
@@ -124,10 +130,10 @@ class AdminDashboard extends StatelessWidget {
               ),
               _buildStatCard(
                 context,
-                '未讀公告',
-                '3',
-                Icons.announcement,
-                Colors.red,
+                '有效邀請碼',
+                '5',
+                Icons.qr_code,
+                Colors.purple,
               ),
             ],
           ),
@@ -187,13 +193,13 @@ class AdminDashboard extends StatelessWidget {
               ),
               _buildQuickActionCard(
                 context,
-                '訪客登記',
-                Icons.people_outline,
+                '生成邀請碼',
+                Icons.qr_code,
                 Colors.purple,
                 () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => const AdminVisitorsScreen(),
+                      builder: (_) => const AdminInvitationCodesScreen(),
                     ),
                   );
                 },
@@ -211,6 +217,12 @@ class AdminDashboard extends StatelessWidget {
           Card(
             child: Column(
               children: [
+                ListTile(
+                  leading: const Icon(Icons.qr_code, color: Colors.purple),
+                  title: const Text('生成邀請碼'),
+                  subtitle: const Text('ABC123 - A棟1001室'),
+                  trailing: const Text('5分鐘前'),
+                ),
                 ListTile(
                   leading: const Icon(Icons.build, color: Colors.orange),
                   title: const Text('A棟1001室報修'),

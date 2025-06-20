@@ -32,6 +32,73 @@ class EndpointGreeting extends _i1.EndpointRef {
       );
 }
 
+/// 認證端點
+/// {@category Endpoint}
+class EndpointAuth extends _i1.EndpointRef {
+  EndpointAuth(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'auth';
+
+  /// 用戶登入
+  _i2.Future<Map<String, dynamic>?> login(String username, String password) =>
+      caller.callServerEndpoint<Map<String, dynamic>?>(
+        'auth',
+        'login',
+        {'username': username, 'password': password},
+      );
+
+  /// 獲取用戶信息
+  _i2.Future<Map<String, dynamic>?> getUserInfo(String username) =>
+      caller.callServerEndpoint<Map<String, dynamic>?>(
+        'auth',
+        'getUserInfo',
+        {'username': username},
+      );
+
+  /// 獲取所有用戶列表
+  _i2.Future<Map<String, dynamic>?> getAllUsers() =>
+      caller.callServerEndpoint<Map<String, dynamic>?>(
+        'auth',
+        'getAllUsers',
+        {},
+      );
+
+  /// 測試連接
+  _i2.Future<Map<String, dynamic>?> testConnection() =>
+      caller.callServerEndpoint<Map<String, dynamic>?>(
+        'auth',
+        'testConnection',
+        {},
+      );
+
+  /// 新增住戶
+  _i2.Future<Map<String, dynamic>> addResident(
+    String username,
+    String password,
+    String name,
+    String unit,
+  ) =>
+      caller.callServerEndpoint<Map<String, dynamic>>(
+        'auth',
+        'addResident',
+        {
+          'username': username,
+          'password': password,
+          'name': name,
+          'unit': unit,
+        },
+      );
+
+  /// 刪除住戶
+  _i2.Future<Map<String, dynamic>> deleteResident(String username) =>
+      caller.callServerEndpoint<Map<String, dynamic>>(
+        'auth',
+        'deleteResident',
+        {'username': username},
+      );
+}
+
 class Client extends _i1.ServerpodClientShared {
   Client(
     String host, {
@@ -59,12 +126,17 @@ class Client extends _i1.ServerpodClientShared {
               disconnectStreamsOnLostInternetConnection,
         ) {
     greeting = EndpointGreeting(this);
+    auth = EndpointAuth(this);
   }
 
   late final EndpointGreeting greeting;
+  late final EndpointAuth auth;
 
   @override
-  Map<String, _i1.EndpointRef> get endpointRefLookup => {'greeting': greeting};
+  Map<String, _i1.EndpointRef> get endpointRefLookup => {
+        'greeting': greeting,
+        'auth': auth,
+      };
 
   @override
   Map<String, _i1.ModuleEndpointCaller> get moduleLookup => {};

@@ -4,6 +4,7 @@ import '../../services/community/auth_service.dart';
 import '../../utils/constants/app_constants.dart';
 import '../resident/resident_home_screen.dart';
 import '../admin/admin_home_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -202,6 +203,26 @@ class _LoginScreenState extends State<LoginScreen> {
                                     style: TextStyle(fontSize: 16),
                                   ),
                           ),
+                        ),
+                        
+                        const SizedBox(height: AppConstants.paddingMedium),
+                        
+                        // 註冊入口
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('還沒有帳號？'),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const RegisterScreen(),
+                                  ),
+                                );
+                              },
+                              child: const Text('立即註冊'),
+                            ),
+                          ],
                         ),
                       ],
                     ),
