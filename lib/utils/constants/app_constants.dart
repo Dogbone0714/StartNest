@@ -40,14 +40,6 @@ class AppConstants {
     '已取消',
   ];
   
-  // 訪客狀態
-  static const List<String> visitorStatuses = [
-    '已登記',
-    '已進入',
-    '已離開',
-    '已取消',
-  ];
-  
   // 車輛類型
   static const List<String> vehicleTypes = [
     '汽車',
@@ -83,4 +75,19 @@ class AppConstants {
   static const double borderRadiusSmall = 4.0;
   static const double borderRadiusMedium = 8.0;
   static const double borderRadiusLarge = 12.0;
+
+  // 維修單狀態
+  static const List<String> maintenanceStatuses = [
+    '待處理',
+    '處理中',
+    '已完成',
+    '已取消',
+  ];
+
+  // 維修單優先級
+  static const List<String> maintenancePriorities = [
+    '低',
+    '中',
+    '高',
+  ];
 } 

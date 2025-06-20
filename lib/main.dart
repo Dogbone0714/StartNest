@@ -3,9 +3,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'services/community/auth_service.dart';
+import 'services/community/serverpod_client_service.dart';
 import 'utils/constants/app_constants.dart';
 
 void main() {
+  // 初始化Serverpod客戶端
+  const serverUrl = String.fromEnvironment('SERVER_URL', defaultValue: 'http://localhost:8080/');
+  ServerpodClientService.initializeClient(serverUrl);
+  
   runApp(const MyApp());
 }
 

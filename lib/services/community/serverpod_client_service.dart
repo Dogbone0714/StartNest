@@ -1,254 +1,53 @@
+import '../../serverpod_client/community_garden_server_client.dart';
+
 class ServerpodClientService {
+  static late Client _client;
+  
+  // 初始化客戶端
+  static void initializeClient(String serverUrl) {
+    _client = Client(serverUrl);
+  }
+  
+  // 獲取客戶端實例
+  static Client get client => _client;
+
   /// 用戶登入
   static Future<Map<String, dynamic>?> login(String username, String password) async {
     try {
-      // 模拟API调用，实际应该调用client.auth.login
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      // 模拟用户数据
-      final mockUsers = {
-        'admin': {
-          'password': 'buildings56119',
-          'name': '管理員',
-          'role': '管理員',
-          'building': '子敬園',
-          'unit': '管理室',
-        },
-        'dogbone0714': {
-          'password': 'abc054015',
-          'name': '康皓雄',
-          'role': '住戶',
-          'building': '子敬園',
-          'unit': '56-6號7樓',
-        },
-        'resident2': {
-          'password': 'resident123',
-          'name': '李小華',
-          'role': '住戶',
-          'building': '子敬園',
-          'unit': '119-2號2樓',
-        },
-        'resident3': {
-          'password': 'resident123',
-          'name': '王美玲',
-          'role': '住戶',
-          'building': '子敬園',
-          'unit': '56-3號3樓',
-        },
-      };
-
-      if (mockUsers.containsKey(username) && 
-          mockUsers[username]!['password'] == password) {
-        final user = mockUsers[username]!;
-        return {
-          'success': true,
-          'user': {
-            'username': username,
-            'name': user['name'],
-            'role': user['role'],
-            'building': user['building'],
-            'unit': user['unit'],
-          },
-        };
-      }
-      return {'success': false, 'message': '帳號或密碼錯誤'};
+      final result = await _client.auth.login(username: username, password: password);
+      return result;
     } catch (e) {
-      print('Login error: $e');
-      return null;
+      return {'success': false, 'message': '登入失敗：$e'};
     }
   }
 
   /// 獲取用戶信息
   static Future<Map<String, dynamic>?> getUserInfo(String username) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 300));
-      
-      final mockUsers = {
-        'admin': {
-          'password': 'buildings56119',
-          'name': '管理員',
-          'role': '管理員',
-          'building': '子敬園',
-          'unit': '管理室',
-        },
-        'dogbone0714': {
-          'password': 'abc054015',
-          'name': '康皓雄',
-          'role': '住戶',
-          'building': '子敬園',
-          'unit': '56-6號7樓',
-        },
-        'resident2': {
-          'password': 'resident123',
-          'name': '李小華',
-          'role': '住戶',
-          'building': '子敬園',
-          'unit': '119-2號2樓',
-        },
-        'resident3': {
-          'password': 'resident123',
-          'name': '王美玲',
-          'role': '住戶',
-          'building': '子敬園',
-          'unit': '56-3號3樓',
-        },
-      };
-
-      if (mockUsers.containsKey(username)) {
-        final user = mockUsers[username]!;
-        return {
-          'success': true,
-          'user': {
-            'username': username,
-            'name': user['name'],
-            'role': user['role'],
-            'building': user['building'],
-            'unit': user['unit'],
-          },
-        };
-      }
-      return {'success': false, 'message': '用戶不存在'};
+      final result = await _client.auth.getUserInfo(username: username);
+      return result;
     } catch (e) {
-      print('Get user info error: $e');
-      return null;
+      return {'success': false, 'message': '獲取用戶信息失敗：$e'};
     }
   }
 
   /// 獲取所有用戶列表
   static Future<Map<String, dynamic>?> getAllUsers() async {
     try {
-      await Future.delayed(const Duration(milliseconds: 400));
-      
-      final mockUsers = {
-        'admin': {
-          'password': 'buildings56119',
-          'name': '管理員',
-          'role': '管理員',
-          'building': '子敬園',
-          'unit': '管理室',
-        },
-        'dogbone0714': {
-          'password': 'abc054015',
-          'name': '康皓雄',
-          'role': '住戶',
-          'building': '子敬園',
-          'unit': '56-6號7樓',
-        },
-        'resident2': {
-          'password': 'resident123',
-          'name': '李小華',
-          'role': '住戶',
-          'building': '子敬園',
-          'unit': '119-2號2樓',
-        },
-        'resident3': {
-          'password': 'resident123',
-          'name': '王美玲',
-          'role': '住戶',
-          'building': '子敬園',
-          'unit': '56-3號3樓',
-        },
-      };
-
-      final users = mockUsers.entries.map((entry) {
-        final user = entry.value;
-        return {
-          'username': entry.key,
-          'name': user['name'],
-          'role': user['role'],
-          'building': user['building'],
-          'unit': user['unit'],
-        };
-      }).toList();
-
-      return {
-        'success': true,
-        'users': users,
-      };
+      final result = await _client.auth.getAllUsers();
+      return result;
     } catch (e) {
-      print('Get all users error: $e');
-      return null;
+      return {'success': false, 'message': '獲取用戶列表失敗：$e'};
     }
   }
 
   /// 獲取所有住戶列表
   static Future<Map<String, dynamic>?> getAllResidents() async {
     try {
-      await Future.delayed(const Duration(milliseconds: 400));
-      
-      final mockUsers = {
-        'admin': {
-          'password': 'buildings56119',
-          'name': '管理員',
-          'role': '管理員',
-          'building': '子敬園',
-          'unit': '管理室',
-        },
-        'dogbone0714': {
-          'password': 'abc054015',
-          'name': '康皓雄',
-          'role': '住戶',
-          'building': '子敬園',
-          'unit': '56-6號7樓',
-        },
-        'resident2': {
-          'password': 'resident123',
-          'name': '李小華',
-          'role': '住戶',
-          'building': '子敬園',
-          'unit': '119-2號2樓',
-        },
-        'resident3': {
-          'password': 'resident123',
-          'name': '王美玲',
-          'role': '住戶',
-          'building': '子敬園',
-          'unit': '56-3號3樓',
-        },
-        'newuser123': {
-          'password': 'newuser123',
-          'name': '張小明',
-          'role': '住戶',
-          'building': '子敬園',
-          'unit': '119-1號1樓',
-        },
-      };
-
-      final residents = mockUsers.entries
-          .where((entry) => entry.value['role'] == '住戶')
-          .map((entry) {
-        final user = entry.value;
-        return {
-          'username': entry.key,
-          'name': user['name'],
-          'role': user['role'],
-          'building': user['building'],
-          'unit': user['unit'],
-        };
-      }).toList();
-
-      return {
-        'success': true,
-        'residents': residents,
-      };
+      final result = await _client.auth.getAllResidents();
+      return result;
     } catch (e) {
-      print('Get all residents error: $e');
-      return null;
-    }
-  }
-
-  /// 測試連接
-  static Future<Map<String, dynamic>?> testConnection() async {
-    try {
-      await Future.delayed(const Duration(milliseconds: 200));
-      return {
-        'success': true,
-        'message': '子敬園一點通後端服務正常運行',
-        'timestamp': DateTime.now().toIso8601String(),
-      };
-    } catch (e) {
-      print('Test connection error: $e');
-      return null;
+      return {'success': false, 'message': '獲取住戶列表失敗：$e'};
     }
   }
 
@@ -260,29 +59,43 @@ class ServerpodClientService {
     String unit,
   ) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 600));
-      
-      // 模拟添加用户到内存存储
-      return {'success': true, 'message': '住戶新增成功'};
+      final result = await _client.auth.addResident(
+        username: username,
+        password: password,
+        name: name,
+        unit: unit,
+      );
+      return result;
     } catch (e) {
-      print('Add resident error: $e');
-      return {'success': false, 'message': '新增住戶失敗'};
+      return {'success': false, 'message': '新增住戶失敗：$e'};
     }
   }
 
   /// 刪除住戶
   static Future<Map<String, dynamic>> deleteResident(String username) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      if (username == 'admin') {
-        return {'success': false, 'message': '管理員帳號不可刪除'};
-      }
-      
-      return {'success': true, 'message': '住戶刪除成功'};
+      final result = await _client.auth.deleteResident(username: username);
+      return result;
     } catch (e) {
-      print('Delete resident error: $e');
-      return {'success': false, 'message': '刪除住戶失敗'};
+      return {'success': false, 'message': '刪除住戶失敗：$e'};
+    }
+  }
+
+  /// 修改住戶信息
+  static Future<Map<String, dynamic>> updateResidentInfo(
+    String username,
+    String name,
+    String unit,
+  ) async {
+    try {
+      final result = await _client.auth.updateResidentInfo(
+        username: username,
+        name: name,
+        unit: unit,
+      );
+      return result;
+    } catch (e) {
+      return {'success': false, 'message': '更新住戶信息失敗：$e'};
     }
   }
 
@@ -293,145 +106,54 @@ class ServerpodClientService {
     String? unit,
   }) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 800));
-      
-      // 模拟生成邀请码
-      final code = 'ABC${DateTime.now().millisecondsSinceEpoch % 1000}';
-      final expiresAt = DateTime.now().add(Duration(days: validDays ?? 7));
-      
-      return {
-        'success': true,
-        'message': '邀請碼生成成功',
-        'code': code,
-        'expiresAt': expiresAt.toIso8601String(),
-      };
+      final result = await _client.auth.generateInvitationCode(
+        createdBy: createdBy,
+        validDays: validDays,
+        unit: unit,
+      );
+      return result;
     } catch (e) {
-      print('Generate invitation code error: $e');
-      return {'success': false, 'message': '生成邀請碼失敗'};
+      return {'success': false, 'message': '生成邀請碼失敗：$e'};
     }
   }
 
   /// 獲取所有邀請碼列表
   static Future<Map<String, dynamic>> getAllInvitationCodes() async {
     try {
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      // 模拟邀请码数据
-      final codes = [
-        {
-          'code': 'ABC123',
-          'createdBy': 'admin',
-          'createdAt': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
-          'expiresAt': DateTime.now().add(const Duration(days: 6)).toIso8601String(),
-          'isUsed': false,
-          'usedBy': null,
-          'usedAt': null,
-          'unit': '119-1號1樓',
-          'isExpired': false,
-          'isValid': true,
-        },
-        {
-          'code': 'DEF456',
-          'createdBy': 'admin',
-          'createdAt': DateTime.now().subtract(const Duration(hours: 2)).toIso8601String(),
-          'expiresAt': DateTime.now().add(const Duration(days: 1)).toIso8601String(),
-          'isUsed': false,
-          'usedBy': null,
-          'usedAt': null,
-          'unit': '56-2號2樓',
-          'isExpired': false,
-          'isValid': true,
-        },
-        {
-          'code': 'GHI789',
-          'createdBy': 'admin',
-          'createdAt': DateTime.now().subtract(const Duration(days: 3)).toIso8601String(),
-          'expiresAt': DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(),
-          'isUsed': false,
-          'usedBy': null,
-          'usedAt': null,
-          'unit': '56-3號3樓',
-          'isExpired': true,
-          'isValid': false,
-        },
-        {
-          'code': 'JKL012',
-          'createdBy': 'admin',
-          'createdAt': DateTime.now().subtract(const Duration(days: 5)).toIso8601String(),
-          'expiresAt': DateTime.now().add(const Duration(days: 2)).toIso8601String(),
-          'isUsed': true,
-          'usedBy': 'newuser123',
-          'usedAt': DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
-          'unit': '119-4號4樓',
-          'isExpired': false,
-          'isValid': false,
-        },
-      ];
-
-      return {
-        'success': true,
-        'codes': codes,
-      };
+      final result = await _client.auth.getAllInvitationCodes();
+      return result;
     } catch (e) {
-      print('Get all invitation codes error: $e');
-      return {'success': false, 'message': '獲取邀請碼列表失敗'};
+      return {'success': false, 'message': '獲取邀請碼列表失敗：$e'};
     }
   }
 
   /// 刪除邀請碼
   static Future<Map<String, dynamic>> deleteInvitationCode(String code) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 400));
-      
-      // 模拟删除邀请码
-      return {'success': true, 'message': '邀請碼刪除成功'};
+      final result = await _client.auth.deleteInvitationCode(code: code);
+      return result;
     } catch (e) {
-      print('Delete invitation code error: $e');
-      return {'success': false, 'message': '刪除邀請碼失敗'};
+      return {'success': false, 'message': '刪除邀請碼失敗：$e'};
     }
   }
 
   /// 驗證邀請碼
   static Future<Map<String, dynamic>> validateInvitationCode(String code) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 300));
-      
-      // 模拟验证邀请码
-      if (code == 'ABC123') {
-        return {
-          'success': true,
-          'message': '邀請碼有效',
-          'unit': '119-1號1樓',
-        };
-      } else if (code == 'DEF456') {
-        return {
-          'success': true,
-          'message': '邀請碼有效',
-          'unit': '56-2號2樓',
-        };
-      } else {
-        return {'success': false, 'message': '邀請碼不存在或已過期'};
-      }
+      final result = await _client.auth.validateInvitationCode(code: code);
+      return result;
     } catch (e) {
-      print('Validate invitation code error: $e');
-      return {'success': false, 'message': '驗證邀請碼失敗'};
+      return {'success': false, 'message': '驗證邀請碼失敗：$e'};
     }
   }
 
   /// 使用邀請碼
   static Future<Map<String, dynamic>> useInvitationCode(String code, String username) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 400));
-      
-      // 模拟使用邀请码
-      if (code == 'ABC123' || code == 'DEF456') {
-        return {'success': true, 'message': '邀請碼使用成功'};
-      } else {
-        return {'success': false, 'message': '邀請碼無效或已使用'};
-      }
+      final result = await _client.auth.useInvitationCode(code: code, username: username);
+      return result;
     } catch (e) {
-      print('Use invitation code error: $e');
-      return {'success': false, 'message': '使用邀請碼失敗'};
+      return {'success': false, 'message': '使用邀請碼失敗：$e'};
     }
   }
 
@@ -445,13 +167,17 @@ class ServerpodClientService {
     String unit,
   ) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 800));
-      
-      // 模拟注册用户
-      return {'success': true, 'message': '註冊成功'};
+      final result = await _client.auth.register(
+        username: username,
+        password: password,
+        name: name,
+        role: role,
+        building: building,
+        unit: unit,
+      );
+      return result;
     } catch (e) {
-      print('Register error: $e');
-      return {'success': false, 'message': '註冊失敗'};
+      return {'success': false, 'message': '註冊失敗：$e'};
     }
   }
 
@@ -464,34 +190,172 @@ class ServerpodClientService {
     String unit,
   ) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 1000));
-      
-      // 模拟使用邀请码注册
-      if (code == 'ABC123' || code == 'DEF456') {
-        return {'success': true, 'message': '註冊成功'};
-      } else {
-        return {'success': false, 'message': '邀請碼無效'};
+      final validateResult = await validateInvitationCode(code);
+      if (validateResult['success'] != true) {
+        return validateResult;
       }
+      final useResult = await useInvitationCode(code, username);
+      if (useResult['success'] != true) {
+        return useResult;
+      }
+      final registerResult = await register(
+        username,
+        password,
+        name,
+        '住戶',
+        '子敬園',
+        unit,
+      );
+      return registerResult;
     } catch (e) {
-      print('Register with invitation code error: $e');
-      return {'success': false, 'message': '註冊失敗'};
+      return {'success': false, 'message': '使用邀請碼註冊失敗：$e'};
     }
   }
 
-  /// 修改住戶信息
-  static Future<Map<String, dynamic>> updateResidentInfo(
-    String username,
-    String name,
-    String unit,
+  /// 測試連接
+  static Future<Map<String, dynamic>> testConnection() async {
+    try {
+      final result = await _client.auth.testConnection();
+      return result;
+    } catch (e) {
+      return {'success': false, 'message': '測試連接失敗：$e'};
+    }
+  }
+
+  // ===== 社區管理相關API =====
+
+  /// 獲取所有公告列表
+  static Future<Map<String, dynamic>> getAllAnnouncements() async {
+    try {
+      // TODO: 實作公告API
+      return {
+        'success': true,
+        'announcements': [
+          {
+            'id': 1,
+            'title': '電梯維護通知',
+            'content': 'A棟電梯將於明日進行維護，請住戶注意。',
+            'createdBy': 'admin',
+            'createdAt': DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(),
+            'isImportant': true,
+          },
+          {
+            'id': 2,
+            'title': '社區清潔日',
+            'content': '本週六將進行社區大掃除，請住戶配合。',
+            'createdBy': 'admin',
+            'createdAt': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
+            'isImportant': false,
+          },
+        ],
+      };
+    } catch (e) {
+      return {'success': false, 'message': '獲取公告列表失敗：$e'};
+    }
+  }
+
+  /// 新增公告
+  static Future<Map<String, dynamic>> addAnnouncement(
+    String title,
+    String content,
+    String createdBy, {
+    bool isImportant = false,
+  }) async {
+    try {
+      // TODO: 實作新增公告API
+      return {'success': true, 'message': '公告發布成功'};
+    } catch (e) {
+      return {'success': false, 'message': '發布公告失敗：$e'};
+    }
+  }
+
+  /// 刪除公告
+  static Future<Map<String, dynamic>> deleteAnnouncement(int id) async {
+    try {
+      // TODO: 實作刪除公告API
+      return {'success': true, 'message': '公告刪除成功'};
+    } catch (e) {
+      return {'success': false, 'message': '刪除公告失敗：$e'};
+    }
+  }
+
+  /// 獲取所有維修單列表
+  static Future<Map<String, dynamic>> getAllMaintenanceRequests() async {
+    try {
+      // TODO: 實作維修單API
+      return {
+        'success': true,
+        'maintenanceRequests': [
+          {
+            'id': 1,
+            'title': '水龍頭漏水',
+            'description': '廚房水龍頭有漏水現象',
+            'status': '處理中',
+            'priority': '中',
+            'createdBy': 'dogbone0714',
+            'createdAt': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
+            'unit': '56-6號7樓',
+          },
+          {
+            'id': 2,
+            'title': '電燈故障',
+            'description': '客廳電燈無法開啟',
+            'status': '待處理',
+            'priority': '高',
+            'createdBy': 'resident2',
+            'createdAt': DateTime.now().subtract(const Duration(hours: 2)).toIso8601String(),
+            'unit': '119-2號2樓',
+          },
+        ],
+      };
+    } catch (e) {
+      return {'success': false, 'message': '獲取維修單列表失敗：$e'};
+    }
+  }
+
+  /// 新增維修單
+  static Future<Map<String, dynamic>> addMaintenanceRequest(
+    String title,
+    String description,
+    String createdBy,
+    String unit, {
+    String priority = '中',
+  }) async {
+    try {
+      // TODO: 實作新增維修單API
+      return {'success': true, 'message': '維修申請提交成功'};
+    } catch (e) {
+      return {'success': false, 'message': '提交維修申請失敗：$e'};
+    }
+  }
+
+  /// 更新維修單狀態
+  static Future<Map<String, dynamic>> updateMaintenanceRequestStatus(
+    int id,
+    String status,
   ) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 600));
-      
-      // 模拟更新住戶信息
-      return {'success': true, 'message': '住戶信息更新成功'};
+      // TODO: 實作更新維修單狀態API
+      return {'success': true, 'message': '維修單狀態更新成功'};
     } catch (e) {
-      print('Update resident info error: $e');
-      return {'success': false, 'message': '更新住戶信息失敗'};
+      return {'success': false, 'message': '更新維修單狀態失敗：$e'};
+    }
+  }
+
+  /// 獲取統計資料
+  static Future<Map<String, dynamic>> getStatistics() async {
+    try {
+      // TODO: 實作統計資料API
+      return {
+        'success': true,
+        'statistics': {
+          'totalResidents': 156,
+          'pendingMaintenance': 8,
+          'activeInvitationCodes': 5,
+        },
+      };
+    } catch (e) {
+      return {'success': false, 'message': '獲取統計資料失敗：$e'};
     }
   }
 } 

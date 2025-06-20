@@ -5,7 +5,6 @@ import '../../utils/constants/app_constants.dart';
 import 'admin_announcements_screen.dart';
 import 'admin_maintenance_screen.dart';
 import 'admin_residents_screen.dart';
-import 'admin_visitors_screen.dart';
 import 'admin_profile_screen.dart';
 import 'admin_invitation_codes_screen.dart';
 
@@ -24,7 +23,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     const AdminAnnouncementsScreen(),
     const AdminMaintenanceScreen(),
     const AdminResidentsScreen(),
-    const AdminVisitorsScreen(),
     const AdminInvitationCodesScreen(),
     const AdminProfileScreen(),
   ];
@@ -70,10 +68,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.people),
             label: '住戶',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline),
-            label: '訪客',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.qr_code),
@@ -123,17 +117,17 @@ class AdminDashboard extends StatelessWidget {
               ),
               _buildStatCard(
                 context,
-                '今日訪客',
-                '12',
-                Icons.people_outline,
-                Colors.green,
-              ),
-              _buildStatCard(
-                context,
                 '有效邀請碼',
                 '5',
                 Icons.qr_code,
                 Colors.purple,
+              ),
+              _buildStatCard(
+                context,
+                '系統狀態',
+                '正常',
+                Icons.check_circle,
+                Colors.green,
               ),
             ],
           ),
@@ -232,12 +226,6 @@ class AdminDashboard extends StatelessWidget {
                     backgroundColor: Colors.orange,
                     labelStyle: TextStyle(color: Colors.white),
                   ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.people_outline, color: Colors.green),
-                  title: const Text('訪客登記'),
-                  subtitle: const Text('B棟2002室 - 王小明'),
-                  trailing: const Text('10分鐘前'),
                 ),
                 ListTile(
                   leading: const Icon(Icons.announcement, color: Colors.blue),

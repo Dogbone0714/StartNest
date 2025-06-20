@@ -46,6 +46,7 @@ dependencies:
   flutter_map: ^4.0.0
   latlong2: ^0.8.2
   qr_flutter: ^4.1.0
+  serverpod_client: ^1.2.5
 
 dev_dependencies:
   flutter_test:

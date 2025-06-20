@@ -1,204 +1,151 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import '../models/startup_space.dart';
-import '../services/startup_service.dart';
-import 'search_screen.dart';
+import 'package:provider/provider.dart';
+import '../services/community/auth_service.dart';
+import '../utils/constants/app_constants.dart';
+import 'resident/resident_announcements_screen.dart';
+import 'resident/resident_maintenance_screen.dart';
+import 'resident/resident_profile_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  final MapController _mapController = MapController();
-  static const LatLng _miaoliCenter = LatLng(24.5647, 120.8233); // 苗栗市中心坐标
-  final StartupService _startupService = StartupService();
-  List<StartupSpace> _startupSpaces = [];
-  String _selectedCategory = '全部';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadStartupSpaces();
-  }
-
-  void _loadStartupSpaces() {
-    setState(() {
-      _startupSpaces = _startupService.getAllStartupSpaces();
-    });
-  }
-
-  void _filterByCategory(String category) {
-    setState(() {
-      _selectedCategory = category;
-      if (category == '全部') {
-        _startupSpaces = _startupService.getAllStartupSpaces();
-      } else {
-        _startupSpaces = _startupService.getStartupSpacesByCategory(category);
-      }
-    });
-  }
-
-  Future<void> _showSearchScreen() async {
-    final result = await Navigator.push<StartupSpace>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const SearchScreen(),
-      ),
-    );
-
-    if (result != null) {
-      _showStartupDetails(result);
-      _mapController.move(result.coordinates, 15.0);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('苗栗創業地圖'),
+        title: const Text('子敬園一點通'),
+        backgroundColor: const Color(AppConstants.primaryColor),
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: _showSearchScreen,
-          ),
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (context) => _buildFilterSheet(),
-              );
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await authService.logout();
+              if (context.mounted) {
+                Navigator.of(context).pushReplacementNamed('/');
+              }
             },
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                center: _miaoliCenter,
-                zoom: 13.0,
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.startnest.miaoli',
-                ),
-                MarkerLayer(
-                  markers: _startupSpaces.map((space) {
-                    return Marker(
-                      point: space.coordinates,
-                      width: 80,
-                      height: 80,
-                      child: GestureDetector(
-                        onTap: () {
-                          _showStartupDetails(space);
-                        },
-                        child: const Icon(
-                          Icons.location_on,
-                          color: Colors.red,
-                          size: 40,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            height: 200,
-            padding: const EdgeInsets.all(16),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _startupSpaces.length,
-              itemBuilder: (context, index) {
-                final space = _startupSpaces[index];
-                return _buildStartupCard(space);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterSheet() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            '選擇類別',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            children: [
-              '全部',
-              '科技',
-              '文創',
-              '農業',
-            ].map((category) {
-              return ChoiceChip(
-                label: Text(category),
-                selected: _selectedCategory == category,
-                onSelected: (selected) {
-                  if (selected) {
-                    _filterByCategory(category);
-                    Navigator.pop(context);
-                  }
-                },
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStartupCard(StartupSpace space) {
-    return Card(
-      margin: const EdgeInsets.only(right: 16),
-      child: Container(
-        width: 200,
-        padding: const EdgeInsets.all(16),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppConstants.paddingMedium),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              _getCategoryIcon(space.category),
-              size: 40,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              space.name,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            // 歡迎訊息
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '歡迎回來，${authService.userName}！',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: AppConstants.paddingSmall),
+                    Text(
+                      '子敬園社區管理系統',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 4),
-            Text('地點：${space.location}'),
-            Text('類別：${space.category}'),
-            const SizedBox(height: 4),
-            Row(
+            const SizedBox(height: AppConstants.paddingLarge),
+
+            // 快速功能
+            Text(
+              '快速功能',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: AppConstants.paddingSmall),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: AppConstants.paddingMedium,
+              mainAxisSpacing: AppConstants.paddingMedium,
               children: [
-                const Icon(Icons.star, color: Colors.amber, size: 16),
-                Text(' ${space.rating}'),
+                _buildQuickActionCard(
+                  context,
+                  '社區公告',
+                  Icons.announcement,
+                  Colors.blue,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ResidentAnnouncementsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildQuickActionCard(
+                  context,
+                  '維修申請',
+                  Icons.build,
+                  Colors.orange,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ResidentMaintenanceScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildQuickActionCard(
+                  context,
+                  '個人資料',
+                  Icons.person,
+                  Colors.purple,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ResidentProfileScreen(),
+                      ),
+                    );
+                  },
+                ),
               ],
+            ),
+            const SizedBox(height: AppConstants.paddingLarge),
+
+            // 系統資訊
+            Text(
+              '系統資訊',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: AppConstants.paddingSmall),
+            Card(
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.info, color: Colors.blue),
+                    title: const Text('系統版本'),
+                    subtitle: const Text('子敬園一點通 v1.0.0'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.security, color: Colors.green),
+                    title: const Text('資料安全'),
+                    subtitle: const Text('所有資料均加密傳輸'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.support_agent, color: Colors.orange),
+                    title: const Text('技術支援'),
+                    subtitle: const Text('如有問題請聯繫管理員'),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -206,68 +153,38 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  IconData _getCategoryIcon(String category) {
-    switch (category) {
-      case '科技':
-        return Icons.business;
-      case '文創':
-        return Icons.store;
-      case '農業':
-        return Icons.agriculture;
-      default:
-        return Icons.business;
-    }
-  }
-
-  void _showStartupDetails(StartupSpace space) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        height: MediaQuery.of(context).size.height * 0.7,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              space.name,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+  Widget _buildQuickActionCard(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+        child: Padding(
+          padding: const EdgeInsets.all(AppConstants.paddingMedium),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 40,
+                color: color,
               ),
-            ),
-            const SizedBox(height: 8),
-            Text('地點：${space.location}'),
-            Text('類別：${space.category}'),
-            const SizedBox(height: 16),
-            Text(
-              space.description,
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              '設施：',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+              const SizedBox(height: AppConstants.paddingSmall),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: AppConstants.fontSizeMedium,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
-            Wrap(
-              spacing: 8,
-              children: space.facilities.map((facility) {
-                return Chip(label: Text(facility));
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-            Text('聯絡方式：${space.contactInfo}'),
-            const Spacer(),
-            ElevatedButton(
-              onPressed: () {
-                // TODO: 實現導航功能
-              },
-              child: const Text('導航到這裡'),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

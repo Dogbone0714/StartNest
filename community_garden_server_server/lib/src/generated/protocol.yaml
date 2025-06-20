@@ -1,0 +1,17 @@
+auth:
+  - login:
+  - getUserInfo:
+  - getAllUsers:
+  - getAllResidents:
+  - addResident:
+  - deleteResident:
+  - updateResidentInfo:
+  - generateInvitationCode:
+  - getAllInvitationCodes:
+  - deleteInvitationCode:
+  - validateInvitationCode:
+  - useInvitationCode:
+  - register:
+  - testConnection:
+greeting:
+  - hello:
