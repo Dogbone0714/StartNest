@@ -11,8 +11,6 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
-import 'package:community_garden_server_client/src/protocol/greeting.dart'
-    as _i3;
 import 'protocol.dart' as _i4;
 
 /// {@category Endpoint}

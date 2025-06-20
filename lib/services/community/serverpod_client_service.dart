@@ -1,4 +1,4 @@
-import '../../serverpod_client/community_garden_server_client.dart';
+import 'package:community_garden_server_client/community_garden_server_client.dart';
 
 class ServerpodClientService {
   static late Client _client;
