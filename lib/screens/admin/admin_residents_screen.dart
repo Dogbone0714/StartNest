@@ -27,13 +27,12 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
     });
 
     try {
-      final result = await ServerpodClientService.getAllUsers();
+      final result = await ServerpodClientService.getAllResidents();
       if (result != null && result['success'] == true) {
-        final users = result['users'] as List;
+        final residents = result['residents'] as List;
         setState(() {
-          _residents = users
-              .map((user) => Resident.fromMap(user))
-              .where((resident) => resident.role == '住戶')
+          _residents = residents
+              .map((resident) => Resident.fromMap(resident))
               .toList();
           _isLoading = false;
         });
@@ -51,12 +50,12 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
     }
   }
 
-  Future<void> _addResident() async {
+  Future<void> _showAddResidentDialog() async {
     final formKey = GlobalKey<FormState>();
-    String username = '';
-    String password = '';
     String name = '';
     String unit = '';
+    String username = '';
+    String password = '';
 
     final result = await showDialog<Map<String, String>>(
       context: context,
@@ -64,74 +63,90 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
         title: const Text('新增住戶'),
         content: Form(
           key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: '帳號',
-                    hintText: '請輸入帳號',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '請輸入帳號';
-                    }
-                    if (value == 'admin') {
-                      return 'admin 為保留帳號';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) => username = value ?? '',
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 用戶名
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: '用戶名 *',
+                  hintText: '請輸入用戶名',
+                  border: OutlineInputBorder(),
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: '密碼',
-                    hintText: '請輸入密碼',
-                  ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '請輸入密碼';
-                    }
-                    if (value.length < 6) {
-                      return '密碼至少需要6位字符';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) => password = value ?? '',
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return '請輸入用戶名';
+                  }
+                  if (value.length < 3) {
+                    return '用戶名至少需要3個字符';
+                  }
+                  return null;
+                },
+                onSaved: (value) => username = value?.trim() ?? '',
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // 密碼
+              TextFormField(
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: '密碼 *',
+                  hintText: '請輸入密碼',
+                  border: OutlineInputBorder(),
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: '姓名',
-                    hintText: '請輸入姓名',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '請輸入姓名';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) => name = value ?? '',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return '請輸入密碼';
+                  }
+                  if (value.length < 6) {
+                    return '密碼至少需要6個字符';
+                  }
+                  return null;
+                },
+                onSaved: (value) => password = value ?? '',
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // 姓名
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: '姓名 *',
+                  hintText: '請輸入真實姓名',
+                  border: OutlineInputBorder(),
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: '房號',
-                    hintText: '例如：A棟1001',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '請輸入房號';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) => unit = value ?? '',
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return '請輸入姓名';
+                  }
+                  return null;
+                },
+                onSaved: (value) => name = value?.trim() ?? '',
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // 房號
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: '房號 *',
+                  hintText: '請輸入房號（如：1101）',
+                  border: OutlineInputBorder(),
                 ),
-              ],
-            ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return '請輸入房號';
+                  }
+                  // 驗證房號格式（純數字）
+                  if (!RegExp(r'^\d+$').hasMatch(value.trim())) {
+                    return '房號只能包含數字';
+                  }
+                  return null;
+                },
+                onSaved: (value) => unit = value?.trim() ?? '',
+              ),
+            ],
           ),
         ),
         actions: [
@@ -191,6 +206,135 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('新增住戶時發生錯誤'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _showEditResidentDialog(Map<String, dynamic> resident) async {
+    final formKey = GlobalKey<FormState>();
+    String name = resident['name'] ?? '';
+    String unit = resident['unit'] ?? '';
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('修改住戶信息'),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 用戶名（只讀）
+              TextFormField(
+                enabled: false,
+                initialValue: resident['username'] ?? '',
+                decoration: const InputDecoration(
+                  labelText: '用戶名',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // 姓名
+              TextFormField(
+                initialValue: name,
+                decoration: const InputDecoration(
+                  labelText: '姓名 *',
+                  hintText: '請輸入真實姓名',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return '請輸入姓名';
+                  }
+                  return null;
+                },
+                onSaved: (value) => name = value?.trim() ?? '',
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // 房號
+              TextFormField(
+                initialValue: unit,
+                decoration: const InputDecoration(
+                  labelText: '房號 *',
+                  hintText: '請輸入房號（如：1101）',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return '請輸入房號';
+                  }
+                  // 驗證房號格式（純數字）
+                  if (!RegExp(r'^\d+$').hasMatch(value.trim())) {
+                    return '房號只能包含數字';
+                  }
+                  return null;
+                },
+                onSaved: (value) => unit = value?.trim() ?? '',
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                formKey.currentState!.save();
+                Navigator.of(context).pop({
+                  'name': name,
+                  'unit': unit,
+                });
+              }
+            },
+            child: const Text('保存'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null) {
+      _showLoadingDialog('更新住戶信息中...');
+      
+      try {
+        final updateResult = await ServerpodClientService.updateResidentInfo(
+          resident['username'],
+          result['name']!,
+          result['unit']!,
+        );
+
+        Navigator.of(context).pop(); // 關閉載入對話框
+
+        if (updateResult['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(updateResult['message']),
+              backgroundColor: Colors.green,
+            ),
+          );
+          _loadResidents(); // 重新載入住戶列表
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(updateResult['message']),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        Navigator.of(context).pop(); // 關閉載入對話框
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('更新住戶信息時發生錯誤'),
             backgroundColor: Colors.red,
           ),
         );
@@ -282,11 +426,6 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _addResident,
-            tooltip: '新增住戶',
-          ),
-          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadResidents,
             tooltip: '重新載入',
@@ -340,10 +479,13 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: _addResident,
-                            icon: const Icon(Icons.add),
-                            label: const Text('新增住戶'),
+                          const Text(
+                            '住戶需要通過邀請碼註冊後才會顯示在此列表中',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
@@ -384,11 +526,23 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
                               ),
                               trailing: PopupMenuButton<String>(
                                 onSelected: (value) {
-                                  if (value == 'delete') {
+                                  if (value == 'edit') {
+                                    _showEditResidentDialog(resident.toMap());
+                                  } else if (value == 'delete') {
                                     _deleteResident(resident);
                                   }
                                 },
                                 itemBuilder: (context) => [
+                                  const PopupMenuItem(
+                                    value: 'edit',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.edit, color: Colors.blue),
+                                        SizedBox(width: 8),
+                                        Text('修改信息', style: TextStyle(color: Colors.blue)),
+                                      ],
+                                    ),
+                                  ),
                                   const PopupMenuItem(
                                     value: 'delete',
                                     child: Row(

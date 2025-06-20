@@ -19,21 +19,21 @@ class ServerpodClientService {
           'name': '康皓雄',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '56-6號7樓',
+          'unit': '5667',
         },
         'resident2': {
           'password': 'resident123',
           'name': '李小華',
           'role': '住戶',
           'building': '子敬園',
-          'unit': 'B棟2002',
+          'unit': '2202',
         },
         'resident3': {
           'password': 'resident123',
           'name': '王美玲',
           'role': '住戶',
           'building': '子敬園',
-          'unit': 'C棟3003',
+          'unit': '3303',
         },
       };
 
@@ -76,21 +76,21 @@ class ServerpodClientService {
           'name': '康皓雄',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '56-6號7樓',
+          'unit': '5667',
         },
         'resident2': {
           'password': 'resident123',
           'name': '李小華',
           'role': '住戶',
           'building': '子敬園',
-          'unit': 'B棟2002',
+          'unit': '2202',
         },
         'resident3': {
           'password': 'resident123',
           'name': '王美玲',
           'role': '住戶',
           'building': '子敬園',
-          'unit': 'C棟3003',
+          'unit': '3303',
         },
       };
 
@@ -132,21 +132,21 @@ class ServerpodClientService {
           'name': '康皓雄',
           'role': '住戶',
           'building': '子敬園',
-          'unit': '56-6號7樓',
+          'unit': '5667',
         },
         'resident2': {
           'password': 'resident123',
           'name': '李小華',
           'role': '住戶',
           'building': '子敬園',
-          'unit': 'B棟2002',
+          'unit': '2202',
         },
         'resident3': {
           'password': 'resident123',
           'name': '王美玲',
           'role': '住戶',
           'building': '子敬園',
-          'unit': 'C棟3003',
+          'unit': '3303',
         },
       };
 
@@ -167,6 +167,72 @@ class ServerpodClientService {
       };
     } catch (e) {
       print('Get all users error: $e');
+      return null;
+    }
+  }
+
+  /// 獲取所有住戶列表
+  static Future<Map<String, dynamic>?> getAllResidents() async {
+    try {
+      await Future.delayed(const Duration(milliseconds: 400));
+      
+      final mockUsers = {
+        'admin': {
+          'password': 'buildings56119',
+          'name': '管理員',
+          'role': '管理員',
+          'building': '子敬園',
+          'unit': '管理室',
+        },
+        'dogbone0714': {
+          'password': 'abc054015',
+          'name': '康皓雄',
+          'role': '住戶',
+          'building': '子敬園',
+          'unit': '5667',
+        },
+        'resident2': {
+          'password': 'resident123',
+          'name': '李小華',
+          'role': '住戶',
+          'building': '子敬園',
+          'unit': '2202',
+        },
+        'resident3': {
+          'password': 'resident123',
+          'name': '王美玲',
+          'role': '住戶',
+          'building': '子敬園',
+          'unit': '3303',
+        },
+        'newuser123': {
+          'password': 'newuser123',
+          'name': '張小明',
+          'role': '住戶',
+          'building': '子敬園',
+          'unit': '1101',
+        },
+      };
+
+      final residents = mockUsers.entries
+          .where((entry) => entry.value['role'] == '住戶')
+          .map((entry) {
+        final user = entry.value;
+        return {
+          'username': entry.key,
+          'name': user['name'],
+          'role': user['role'],
+          'building': user['building'],
+          'unit': user['unit'],
+        };
+      }).toList();
+
+      return {
+        'success': true,
+        'residents': residents,
+      };
+    } catch (e) {
+      print('Get all residents error: $e');
       return null;
     }
   }
@@ -260,7 +326,7 @@ class ServerpodClientService {
           'isUsed': false,
           'usedBy': null,
           'usedAt': null,
-          'unit': 'A棟1001',
+          'unit': '1101',
           'isExpired': false,
           'isValid': true,
         },
@@ -272,7 +338,7 @@ class ServerpodClientService {
           'isUsed': false,
           'usedBy': null,
           'usedAt': null,
-          'unit': 'B棟2002',
+          'unit': '2202',
           'isExpired': false,
           'isValid': true,
         },
@@ -284,7 +350,7 @@ class ServerpodClientService {
           'isUsed': false,
           'usedBy': null,
           'usedAt': null,
-          'unit': 'C棟3003',
+          'unit': '3303',
           'isExpired': true,
           'isValid': false,
         },
@@ -296,7 +362,7 @@ class ServerpodClientService {
           'isUsed': true,
           'usedBy': 'newuser123',
           'usedAt': DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
-          'unit': 'D棟4004',
+          'unit': '4404',
           'isExpired': false,
           'isValid': false,
         },
@@ -335,13 +401,13 @@ class ServerpodClientService {
         return {
           'success': true,
           'message': '邀請碼有效',
-          'unit': 'A棟1001',
+          'unit': '1101',
         };
       } else if (code == 'DEF456') {
         return {
           'success': true,
           'message': '邀請碼有效',
-          'unit': 'B棟2002',
+          'unit': '2202',
         };
       } else {
         return {'success': false, 'message': '邀請碼不存在或已過期'};
@@ -349,6 +415,43 @@ class ServerpodClientService {
     } catch (e) {
       print('Validate invitation code error: $e');
       return {'success': false, 'message': '驗證邀請碼失敗'};
+    }
+  }
+
+  /// 使用邀請碼
+  static Future<Map<String, dynamic>> useInvitationCode(String code, String username) async {
+    try {
+      await Future.delayed(const Duration(milliseconds: 400));
+      
+      // 模拟使用邀请码
+      if (code == 'ABC123' || code == 'DEF456') {
+        return {'success': true, 'message': '邀請碼使用成功'};
+      } else {
+        return {'success': false, 'message': '邀請碼無效或已使用'};
+      }
+    } catch (e) {
+      print('Use invitation code error: $e');
+      return {'success': false, 'message': '使用邀請碼失敗'};
+    }
+  }
+
+  /// 註冊用戶
+  static Future<Map<String, dynamic>> register(
+    String username,
+    String password,
+    String name,
+    String role,
+    String building,
+    String unit,
+  ) async {
+    try {
+      await Future.delayed(const Duration(milliseconds: 800));
+      
+      // 模拟注册用户
+      return {'success': true, 'message': '註冊成功'};
+    } catch (e) {
+      print('Register error: $e');
+      return {'success': false, 'message': '註冊失敗'};
     }
   }
 
@@ -372,6 +475,23 @@ class ServerpodClientService {
     } catch (e) {
       print('Register with invitation code error: $e');
       return {'success': false, 'message': '註冊失敗'};
+    }
+  }
+
+  /// 修改住戶信息
+  static Future<Map<String, dynamic>> updateResidentInfo(
+    String username,
+    String name,
+    String unit,
+  ) async {
+    try {
+      await Future.delayed(const Duration(milliseconds: 600));
+      
+      // 模拟更新住戶信息
+      return {'success': true, 'message': '住戶信息更新成功'};
+    } catch (e) {
+      print('Update resident info error: $e');
+      return {'success': false, 'message': '更新住戶信息失敗'};
     }
   }
 } 

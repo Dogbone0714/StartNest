@@ -28,21 +28,21 @@ class AuthService extends ChangeNotifier {
       'role': '住戶',
       'name': '康皓雄',
       'building': '子敬園',
-      'unit': '56-6號7樓',
+      'unit': '5667',
     },
     'resident2': {
       'password': 'resident123',
       'role': '住戶',
       'name': '李小華',
       'building': '子敬園',
-      'unit': 'B棟2002',
+      'unit': '2202',
     },
     'resident3': {
       'password': 'resident123',
       'role': '住戶',
       'name': '王美玲',
       'building': '子敬園',
-      'unit': 'C棟3003',
+      'unit': '3303',
     },
   };
 

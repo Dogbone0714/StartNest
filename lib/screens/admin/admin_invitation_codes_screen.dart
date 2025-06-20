@@ -14,6 +14,7 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
   List<Map<String, dynamic>> _invitationCodes = [];
   bool _isLoading = true;
   String? _errorMessage;
+  TextEditingController _unitController = TextEditingController();
 
   @override
   void initState() {
@@ -83,11 +84,22 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
               ),
               const SizedBox(height: 16),
               TextFormField(
+                controller: _unitController,
                 decoration: const InputDecoration(
-                  labelText: '預設房號（可選）',
-                  hintText: '例如：A棟1001',
+                  labelText: '房號',
+                  hintText: '請輸入房號（如：1101）',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.home),
                 ),
-                onSaved: (value) => unit = value ?? '',
+                validator: (value) {
+                  if (value != null && value.trim().isNotEmpty) {
+                    // 驗證房號格式（純數字）
+                    if (!RegExp(r'^\d+$').hasMatch(value.trim())) {
+                      return '房號只能包含數字';
+                    }
+                  }
+                  return null;
+                },
               ),
             ],
           ),
