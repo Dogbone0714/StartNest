@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/community/auth_service.dart';
+import '../../services/community/firebase_service.dart';
 import '../../utils/constants/app_constants.dart';
 import 'admin_announcements_screen.dart';
 import 'admin_maintenance_screen.dart';
@@ -16,16 +17,106 @@ class AdminHomeScreen extends StatefulWidget {
 }
 
 class _AdminHomeScreenState extends State<AdminHomeScreen> {
-  int _currentIndex = 0;
+  Map<String, dynamic> _stats = {};
+  List<Map<String, dynamic>> _recentActivities = [];
+  bool _isLoading = true;
+  String? _errorMessage;
 
-  final List<Widget> _screens = [
-    const AdminDashboard(),
-    const AdminAnnouncementsScreen(),
-    const AdminMaintenanceScreen(),
-    const AdminResidentsScreen(),
-    const AdminInvitationCodesScreen(),
-    const AdminProfileScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadDashboardData();
+  }
+
+  Future<void> _loadDashboardData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // 並行加載統計數據和最近活動
+      final results = await Future.wait([
+        FirebaseService.getDashboardStats(),
+        FirebaseService.getRecentActivities(limit: 5),
+      ]);
+
+      final statsResult = results[0];
+      final activitiesResult = results[1];
+
+      if (statsResult['success'] == true && activitiesResult['success'] == true) {
+        setState(() {
+          _stats = statsResult['stats'];
+          _recentActivities = List<Map<String, dynamic>>.from(activitiesResult['activities']);
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = '載入數據失敗';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = '載入數據失敗：$e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  String _formatTimeAgo(String dateTimeString) {
+    try {
+      final dateTime = DateTime.parse(dateTimeString);
+      final now = DateTime.now();
+      final difference = now.difference(dateTime);
+
+      if (difference.inMinutes < 1) {
+        return '剛剛';
+      } else if (difference.inMinutes < 60) {
+        return '${difference.inMinutes}分鐘前';
+      } else if (difference.inHours < 24) {
+        return '${difference.inHours}小時前';
+      } else {
+        return '${difference.inDays}天前';
+      }
+    } catch (e) {
+      return '未知時間';
+    }
+  }
+
+  IconData _getActivityIcon(String type) {
+    switch (type) {
+      case 'invitation_code':
+        return Icons.qr_code;
+      case 'maintenance_request':
+        return Icons.build;
+      case 'announcement':
+        return Icons.announcement;
+      case 'user_registration':
+        return Icons.person_add;
+      case 'user_deletion':
+        return Icons.person_remove;
+      default:
+        return Icons.info;
+    }
+  }
+
+  Color _getActivityColor(String type) {
+    switch (type) {
+      case 'invitation_code':
+        return Colors.purple;
+      case 'maintenance_request':
+        return Colors.orange;
+      case 'announcement':
+        return Colors.blue;
+      case 'user_registration':
+        return Colors.green;
+      case 'user_deletion':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,201 +134,215 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           ),
         ],
       ),
-      body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: '儀表板',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.announcement),
-            label: '公告',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.build),
-            label: '維修',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: '住戶',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code),
-            label: '邀請碼',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: '個人',
-          ),
-        ],
-      ),
-    );
-  }
-}
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(_errorMessage!),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadDashboardData,
+                        child: const Text('重試'),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadDashboardData,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 歡迎訊息
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.admin_panel_settings,
+                                  size: 48,
+                                  color: Color(AppConstants.primaryColor),
+                                ),
+                                const SizedBox(width: AppConstants.paddingMedium),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '歡迎回來，管理員！',
+                                        style: Theme.of(context).textTheme.headlineSmall,
+                                      ),
+                                      const SizedBox(height: AppConstants.paddingSmall),
+                                      Text(
+                                        '今天是 ${DateTime.now().year}年${DateTime.now().month}月${DateTime.now().day}日',
+                                        style: Theme.of(context).textTheme.bodyMedium,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppConstants.paddingLarge),
 
-class AdminDashboard extends StatelessWidget {
-  const AdminDashboard({super.key});
+                        // 統計卡片
+                        Text(
+                          '系統概覽',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: AppConstants.paddingSmall),
+                        GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: AppConstants.paddingMedium,
+                          mainAxisSpacing: AppConstants.paddingMedium,
+                          children: [
+                            _buildStatCard(
+                              context,
+                              '總用戶數',
+                              '${_stats['total_users'] ?? 0}',
+                              Icons.people,
+                              Colors.blue,
+                            ),
+                            _buildStatCard(
+                              context,
+                              '住戶數量',
+                              '${_stats['total_residents'] ?? 0}',
+                              Icons.home,
+                              Colors.green,
+                            ),
+                            _buildStatCard(
+                              context,
+                              '有效邀請碼',
+                              '${_stats['valid_invitation_codes'] ?? 0}',
+                              Icons.qr_code,
+                              Colors.purple,
+                            ),
+                            _buildStatCard(
+                              context,
+                              '待處理維修',
+                              '${_stats['pending_maintenance_requests'] ?? 0}',
+                              Icons.build,
+                              Colors.orange,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppConstants.paddingLarge),
 
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppConstants.paddingMedium),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 統計卡片
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            crossAxisSpacing: AppConstants.paddingMedium,
-            mainAxisSpacing: AppConstants.paddingMedium,
-            children: [
-              _buildStatCard(
-                context,
-                '總住戶數',
-                '156',
-                Icons.people,
-                Colors.blue,
-              ),
-              _buildStatCard(
-                context,
-                '待處理維修',
-                '8',
-                Icons.build,
-                Colors.orange,
-              ),
-              _buildStatCard(
-                context,
-                '有效邀請碼',
-                '5',
-                Icons.qr_code,
-                Colors.purple,
-              ),
-              _buildStatCard(
-                context,
-                '系統狀態',
-                '正常',
-                Icons.check_circle,
-                Colors.green,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppConstants.paddingLarge),
+                        // 快速功能
+                        Text(
+                          '快速功能',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: AppConstants.paddingSmall),
+                        GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: AppConstants.paddingMedium,
+                          mainAxisSpacing: AppConstants.paddingMedium,
+                          children: [
+                            _buildQuickActionCard(
+                              context,
+                              '發布公告',
+                              Icons.announcement,
+                              Colors.blue,
+                              () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const AdminAnnouncementsScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            _buildQuickActionCard(
+                              context,
+                              '處理維修',
+                              Icons.build,
+                              Colors.orange,
+                              () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const AdminMaintenanceScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            _buildQuickActionCard(
+                              context,
+                              '住戶管理',
+                              Icons.people,
+                              Colors.green,
+                              () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const AdminResidentsScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            _buildQuickActionCard(
+                              context,
+                              '生成邀請碼',
+                              Icons.qr_code,
+                              Colors.purple,
+                              () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const AdminInvitationCodesScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppConstants.paddingLarge),
 
-          // 快速功能
-          Text(
-            '快速功能',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: AppConstants.paddingSmall),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            crossAxisSpacing: AppConstants.paddingMedium,
-            mainAxisSpacing: AppConstants.paddingMedium,
-            children: [
-              _buildQuickActionCard(
-                context,
-                '發布公告',
-                Icons.announcement,
-                Colors.blue,
-                () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const AdminAnnouncementsScreen(),
+                        // 最近活動
+                        Text(
+                          '最近活動',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: AppConstants.paddingSmall),
+                        Card(
+                          child: _recentActivities.isEmpty
+                              ? const Padding(
+                                  padding: EdgeInsets.all(AppConstants.paddingLarge),
+                                  child: Center(
+                                    child: Text('暫無活動記錄'),
+                                  ),
+                                )
+                              : Column(
+                                  children: _recentActivities.map((activity) {
+                                    return ListTile(
+                                      leading: Icon(
+                                        _getActivityIcon(activity['type']),
+                                        color: _getActivityColor(activity['type']),
+                                      ),
+                                      title: Text(activity['title']),
+                                      subtitle: Text(activity['description']),
+                                      trailing: Text(
+                                        _formatTimeAgo(activity['created_at']),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                        ),
+                      ],
                     ),
-                  );
-                },
-              ),
-              _buildQuickActionCard(
-                context,
-                '處理維修',
-                Icons.build,
-                Colors.orange,
-                () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const AdminMaintenanceScreen(),
-                    ),
-                  );
-                },
-              ),
-              _buildQuickActionCard(
-                context,
-                '住戶管理',
-                Icons.people,
-                Colors.green,
-                () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const AdminResidentsScreen(),
-                    ),
-                  );
-                },
-              ),
-              _buildQuickActionCard(
-                context,
-                '生成邀請碼',
-                Icons.qr_code,
-                Colors.purple,
-                () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const AdminInvitationCodesScreen(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: AppConstants.paddingLarge),
-
-          // 最近活動
-          Text(
-            '最近活動',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: AppConstants.paddingSmall),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.qr_code, color: Colors.purple),
-                  title: const Text('生成邀請碼'),
-                  subtitle: const Text('ABC123 - A棟1001室'),
-                  trailing: const Text('5分鐘前'),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.build, color: Colors.orange),
-                  title: const Text('A棟1001室報修'),
-                  subtitle: const Text('水龍頭漏水'),
-                  trailing: const Chip(
-                    label: Text('待處理'),
-                    backgroundColor: Colors.orange,
-                    labelStyle: TextStyle(color: Colors.white),
                   ),
                 ),
-                ListTile(
-                  leading: const Icon(Icons.announcement, color: Colors.blue),
-                  title: const Text('發布公告'),
-                  subtitle: const Text('電梯維護通知'),
-                  trailing: const Text('1小時前'),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 

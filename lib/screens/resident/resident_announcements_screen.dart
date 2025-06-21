@@ -20,6 +20,19 @@ class _ResidentAnnouncementsScreenState extends State<ResidentAnnouncementsScree
     _loadAnnouncements();
   }
 
+  String _formatDateTime(String? dateTimeString) {
+    if (dateTimeString == null || dateTimeString.isEmpty) {
+      return '未知時間';
+    }
+    
+    try {
+      final dateTime = DateTime.parse(dateTimeString);
+      return '${dateTime.year}年${dateTime.month.toString().padLeft(2, '0')}月${dateTime.day.toString().padLeft(2, '0')}日 ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return '時間格式錯誤';
+    }
+  }
+
   Future<void> _loadAnnouncements() async {
     setState(() {
       _isLoading = true;
@@ -103,7 +116,7 @@ class _ResidentAnnouncementsScreenState extends State<ResidentAnnouncementsScree
                                   Text(announcement['content']),
                                   const SizedBox(height: 8),
                                   Text(
-                                    '發布時間：${announcement['createdAt']}',
+                                    '發布時間：${_formatDateTime(announcement['created_at'])}',
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey,

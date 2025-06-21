@@ -20,6 +20,19 @@ class _ResidentMaintenanceScreenState extends State<ResidentMaintenanceScreen> {
     _loadMaintenanceRequests();
   }
 
+  String _formatDateTime(String? dateTimeString) {
+    if (dateTimeString == null || dateTimeString.isEmpty) {
+      return '未知時間';
+    }
+    
+    try {
+      final dateTime = DateTime.parse(dateTimeString);
+      return '${dateTime.year}年${dateTime.month.toString().padLeft(2, '0')}月${dateTime.day.toString().padLeft(2, '0')}日 ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return '時間格式錯誤';
+    }
+  }
+
   Future<void> _loadMaintenanceRequests() async {
     setState(() {
       _isLoading = true;
@@ -205,7 +218,7 @@ class _ResidentMaintenanceScreenState extends State<ResidentMaintenanceScreen> {
                                       ),
                                       const Spacer(),
                                       Text(
-                                        '提交時間：${request['createdAt']}',
+                                        '提交時間：${_formatDateTime(request['created_at'])}',
                                         style: const TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey,

@@ -277,7 +277,11 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
     );
   }
 
-  String _formatDateTime(String dateTimeString) {
+  String _formatDateTime(String? dateTimeString) {
+    if (dateTimeString == null || dateTimeString.isEmpty) {
+      return '未知時間';
+    }
+    
     try {
       final dateTime = DateTime.parse(dateTimeString);
       return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
@@ -291,12 +295,20 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
       return '已使用';
     }
     
-    final expiresAt = DateTime.parse(code['expires_at']);
-    if (expiresAt.isBefore(DateTime.now())) {
-      return '已過期';
+    final expiresAtString = code['expires_at']?.toString();
+    if (expiresAtString == null || expiresAtString.isEmpty) {
+      return '無效';
     }
     
-    return '有效';
+    try {
+      final expiresAt = DateTime.parse(expiresAtString);
+      if (expiresAt.isBefore(DateTime.now())) {
+        return '已過期';
+      }
+      return '有效';
+    } catch (e) {
+      return '無效';
+    }
   }
 
   Color _getStatusColor(Map<String, dynamic> code) {
@@ -304,12 +316,20 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
       return Colors.grey;
     }
     
-    final expiresAt = DateTime.parse(code['expires_at']);
-    if (expiresAt.isBefore(DateTime.now())) {
+    final expiresAtString = code['expires_at']?.toString();
+    if (expiresAtString == null || expiresAtString.isEmpty) {
       return Colors.red;
     }
     
-    return Colors.green;
+    try {
+      final expiresAt = DateTime.parse(expiresAtString);
+      if (expiresAt.isBefore(DateTime.now())) {
+        return Colors.red;
+      }
+      return Colors.green;
+    } catch (e) {
+      return Colors.red;
+    }
   }
 
   @override

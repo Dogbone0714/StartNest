@@ -119,12 +119,12 @@ class FirebaseService {
         final users = data.entries.map((entry) {
           final userData = entry.value as Map<dynamic, dynamic>;
           return {
-            'username': userData['username'],
-            'name': userData['name'],
-            'role': userData['role'],
-            'building': userData['building'],
-            'unit': userData['unit'],
-            'created_at': userData['created_at'],
+            'username': userData['username']?.toString() ?? '',
+            'name': userData['name']?.toString() ?? '',
+            'role': userData['role']?.toString() ?? '',
+            'building': userData['building']?.toString() ?? '',
+            'unit': userData['unit']?.toString() ?? '',
+            'created_at': userData['created_at']?.toString() ?? '',
           };
         }).toList();
         
@@ -146,17 +146,17 @@ class FirebaseService {
         final residents = data.entries
             .where((entry) {
               final userData = entry.value as Map<dynamic, dynamic>;
-              return userData['role'] == '住戶';
+              return userData['role']?.toString() == '住戶';
             })
             .map((entry) {
               final userData = entry.value as Map<dynamic, dynamic>;
               return {
-                'username': userData['username'],
-                'name': userData['name'],
-                'role': userData['role'],
-                'building': userData['building'],
-                'unit': userData['unit'],
-                'created_at': userData['created_at'],
+                'username': userData['username']?.toString() ?? '',
+                'name': userData['name']?.toString() ?? '',
+                'role': userData['role']?.toString() ?? '',
+                'building': userData['building']?.toString() ?? '',
+                'unit': userData['unit']?.toString() ?? '',
+                'created_at': userData['created_at']?.toString() ?? '',
               };
             })
             .toList();
@@ -268,6 +268,20 @@ class FirebaseService {
       });
 
       if (success) {
+        // 添加活動記錄
+        await addActivity(
+          'invitation_code',
+          '生成邀請碼',
+          '生成邀請碼：$code${unit != null ? ' (${unit})' : ''}',
+          createdBy,
+          '管理員',
+          metadata: {
+            'code': code,
+            'unit': unit,
+            'valid_days': validDays ?? 7,
+          },
+        );
+        
         return {
           'success': true,
           'message': '邀請碼生成成功',
@@ -288,14 +302,14 @@ class FirebaseService {
         final codes = data.entries.map((entry) {
           final codeData = entry.value as Map<dynamic, dynamic>;
           return {
-            'code': codeData['code'],
-            'created_by': codeData['created_by'],
-            'created_at': codeData['created_at'],
-            'expires_at': codeData['expires_at'],
-            'is_used': codeData['is_used'],
-            'used_by': codeData['used_by'],
-            'used_at': codeData['used_at'],
-            'unit': codeData['unit'],
+            'code': codeData['code']?.toString() ?? '',
+            'created_by': codeData['created_by']?.toString() ?? '',
+            'created_at': codeData['created_at']?.toString() ?? '',
+            'expires_at': codeData['expires_at']?.toString() ?? '',
+            'is_used': codeData['is_used'] ?? false,
+            'used_by': codeData['used_by']?.toString(),
+            'used_at': codeData['used_at']?.toString(),
+            'unit': codeData['unit']?.toString(),
           };
         }).toList();
         
@@ -449,10 +463,10 @@ class FirebaseService {
           final announcementData = entry.value as Map<dynamic, dynamic>;
           return {
             'id': entry.key,
-            'title': announcementData['title'],
-            'content': announcementData['content'],
-            'created_by': announcementData['created_by'],
-            'created_at': announcementData['created_at'],
+            'title': announcementData['title']?.toString() ?? '',
+            'content': announcementData['content']?.toString() ?? '',
+            'created_by': announcementData['created_by']?.toString() ?? '',
+            'created_at': announcementData['created_at']?.toString() ?? '',
           };
         }).toList();
         
@@ -481,6 +495,19 @@ class FirebaseService {
       });
 
       if (success) {
+        // 添加活動記錄
+        await addActivity(
+          'announcement',
+          '發布公告',
+          '發布公告：$title',
+          'admin',
+          '管理員',
+          metadata: {
+            'announcement_id': id,
+            'title': title,
+          },
+        );
+        
         return {'success': true, 'message': '公告新增成功'};
       } else {
         return {'success': false, 'message': '新增公告失敗'};
@@ -492,9 +519,31 @@ class FirebaseService {
 
   static Future<Map<String, dynamic>> deleteAnnouncement(String id) async {
     try {
+      // 獲取公告信息用於活動記錄
+      final announcementData = await _getData('announcements/$id');
+      String announcementTitle = '未知公告';
+      
+      if (announcementData != null) {
+        final announcement = announcementData as Map<dynamic, dynamic>;
+        announcementTitle = announcement['title']?.toString() ?? '未知公告';
+      }
+
       final success = await _deleteData('announcements/$id');
       
       if (success) {
+        // 添加活動記錄
+        await addActivity(
+          'announcement',
+          '刪除公告',
+          '刪除公告：$announcementTitle',
+          'admin',
+          '管理員',
+          metadata: {
+            'announcement_id': id,
+            'title': announcementTitle,
+          },
+        );
+        
         return {'success': true, 'message': '公告刪除成功'};
       } else {
         return {'success': false, 'message': '刪除公告失敗'};
@@ -513,11 +562,11 @@ class FirebaseService {
           final requestData = entry.value as Map<dynamic, dynamic>;
           return {
             'id': entry.key,
-            'title': requestData['title'],
-            'description': requestData['description'],
-            'status': requestData['status'] ?? 'pending',
-            'created_by': requestData['created_by'],
-            'created_at': requestData['created_at'],
+            'title': requestData['title']?.toString() ?? '',
+            'description': requestData['description']?.toString() ?? '',
+            'status': requestData['status']?.toString() ?? 'pending',
+            'created_by': requestData['created_by']?.toString() ?? '',
+            'created_at': requestData['created_at']?.toString() ?? '',
           };
         }).toList();
         
@@ -547,6 +596,20 @@ class FirebaseService {
       });
 
       if (success) {
+        // 添加活動記錄
+        await addActivity(
+          'maintenance_request',
+          '提交維修請求',
+          '提交維修請求：$title',
+          'resident',
+          '住戶',
+          metadata: {
+            'request_id': id,
+            'title': title,
+            'status': 'pending',
+          },
+        );
+        
         return {'success': true, 'message': '維修請求提交成功'};
       } else {
         return {'success': false, 'message': '提交維修請求失敗'};
@@ -563,10 +626,286 @@ class FirebaseService {
         'updated_at': DateTime.now().toIso8601String(),
       });
       
+      if (success) {
+        // 添加活動記錄
+        await addActivity(
+          'maintenance_request',
+          '更新維修狀態',
+          '維修請求狀態更新為：${_getStatusText(status)}',
+          'admin',
+          '管理員',
+          metadata: {
+            'request_id': id,
+            'status': status,
+          },
+        );
+      }
+      
       return success;
     } catch (e) {
       print('Error updating maintenance request status: $e');
       return false;
+    }
+  }
+
+  static String _getStatusText(String status) {
+    switch (status) {
+      case 'pending':
+        return '待處理';
+      case 'in_progress':
+        return '處理中';
+      case 'completed':
+        return '已完成';
+      default:
+        return '未知';
+    }
+  }
+
+  // 活動追蹤相關操作
+  static Future<bool> addActivity(
+    String type,
+    String title,
+    String description,
+    String userId,
+    String userName,
+    {Map<String, dynamic>? metadata}
+  ) async {
+    try {
+      final id = DateTime.now().millisecondsSinceEpoch.toString();
+      final success = await _setData('activities/$id', {
+        'type': type,
+        'title': title,
+        'description': description,
+        'user_id': userId,
+        'user_name': userName,
+        'created_at': DateTime.now().toIso8601String(),
+        'metadata': metadata ?? {},
+      });
+      
+      return success;
+    } catch (e) {
+      print('Error adding activity: $e');
+      return false;
+    }
+  }
+
+  static Future<Map<String, dynamic>> getRecentActivities({int limit = 10}) async {
+    try {
+      final data = await _getData('activities');
+      if (data != null) {
+        final activities = data.entries.map((entry) {
+          final activityData = entry.value as Map<dynamic, dynamic>;
+          return {
+            'id': entry.key,
+            'type': activityData['type']?.toString() ?? '',
+            'title': activityData['title']?.toString() ?? '',
+            'description': activityData['description']?.toString() ?? '',
+            'user_id': activityData['user_id']?.toString() ?? '',
+            'user_name': activityData['user_name']?.toString() ?? '',
+            'created_at': activityData['created_at']?.toString() ?? '',
+            'metadata': activityData['metadata'] ?? {},
+          };
+        }).toList();
+        
+        // 按時間排序（最新的在前）
+        activities.sort((a, b) {
+          final aTime = DateTime.tryParse(a['created_at'] ?? '') ?? DateTime(1900);
+          final bTime = DateTime.tryParse(b['created_at'] ?? '') ?? DateTime(1900);
+          return bTime.compareTo(aTime);
+        });
+        
+        // 限制數量
+        final limitedActivities = activities.take(limit).toList();
+        
+        return {
+          'success': true,
+          'activities': limitedActivities,
+        };
+      }
+      return {'success': true, 'activities': []};
+    } catch (e) {
+      return {'success': false, 'message': '獲取活動列表失敗：$e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getDashboardStats() async {
+    try {
+      // 獲取各種統計數據
+      final usersData = await _getData('users');
+      final invitationCodesData = await _getData('invitation_codes');
+      final announcementsData = await _getData('announcements');
+      final maintenanceRequestsData = await _getData('maintenance_requests');
+      
+      int totalUsers = 0;
+      int totalResidents = 0;
+      int validInvitationCodes = 0;
+      int pendingMaintenanceRequests = 0;
+      
+      // 計算用戶統計
+      if (usersData != null) {
+        totalUsers = usersData.length;
+        totalResidents = usersData.entries
+            .where((entry) {
+              final userData = entry.value as Map<dynamic, dynamic>;
+              return userData['role']?.toString() == '住戶';
+            })
+            .length;
+      }
+      
+      // 計算邀請碼統計
+      if (invitationCodesData != null) {
+        validInvitationCodes = invitationCodesData.entries
+            .where((entry) {
+              final codeData = entry.value as Map<dynamic, dynamic>;
+              final isUsed = codeData['is_used'] ?? false;
+              if (isUsed) return false;
+              
+              final expiresAtString = codeData['expires_at']?.toString();
+              if (expiresAtString == null || expiresAtString.isEmpty) return false;
+              
+              try {
+                final expiresAt = DateTime.parse(expiresAtString);
+                return expiresAt.isAfter(DateTime.now());
+              } catch (e) {
+                return false;
+              }
+            })
+            .length;
+      }
+      
+      // 計算維修請求統計
+      if (maintenanceRequestsData != null) {
+        pendingMaintenanceRequests = maintenanceRequestsData.entries
+            .where((entry) {
+              final requestData = entry.value as Map<dynamic, dynamic>;
+              return requestData['status']?.toString() == 'pending';
+            })
+            .length;
+      }
+      
+      return {
+        'success': true,
+        'stats': {
+          'total_users': totalUsers,
+          'total_residents': totalResidents,
+          'valid_invitation_codes': validInvitationCodes,
+          'pending_maintenance_requests': pendingMaintenanceRequests,
+          'total_announcements': announcementsData?.length ?? 0,
+        },
+      };
+    } catch (e) {
+      return {'success': false, 'message': '獲取統計數據失敗：$e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> registerUser(
+    String email,
+    String password,
+    String name,
+    String role,
+    String invitationCode,
+  ) async {
+    try {
+      // 檢查邀請碼是否有效
+      final invitationResult = await _getData('invitation_codes/$invitationCode');
+      if (invitationResult == null) {
+        return {'success': false, 'message': '邀請碼不存在'};
+      }
+
+      final invitationData = invitationResult as Map<dynamic, dynamic>;
+      if (invitationData['is_used'] == true) {
+        return {'success': false, 'message': '邀請碼已被使用'};
+      }
+
+      final expiresAtString = invitationData['expires_at']?.toString();
+      if (expiresAtString != null && expiresAtString.isNotEmpty) {
+        try {
+          final expiresAt = DateTime.parse(expiresAtString);
+          if (expiresAt.isBefore(DateTime.now())) {
+            return {'success': false, 'message': '邀請碼已過期'};
+          }
+        } catch (e) {
+          return {'success': false, 'message': '邀請碼格式錯誤'};
+        }
+      }
+
+      // 創建用戶
+      final userId = DateTime.now().millisecondsSinceEpoch.toString();
+      final success = await _setData('users/$userId', {
+        'email': email,
+        'name': name,
+        'role': role,
+        'invitation_code': invitationCode,
+        'created_at': DateTime.now().toIso8601String(),
+      });
+
+      if (success) {
+        // 標記邀請碼為已使用
+        await _updateData('invitation_codes/$invitationCode', {
+          'is_used': true,
+          'used_by': userId,
+          'used_at': DateTime.now().toIso8601String(),
+        });
+
+        // 添加活動記錄
+        await addActivity(
+          'user_registration',
+          '用戶註冊',
+          '新用戶註冊：$name ($role)',
+          userId,
+          name,
+          metadata: {
+            'email': email,
+            'role': role,
+            'invitation_code': invitationCode,
+          },
+        );
+
+        return {'success': true, 'message': '註冊成功'};
+      } else {
+        return {'success': false, 'message': '註冊失敗'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '註冊失敗：$e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteUser(String userId) async {
+    try {
+      // 獲取用戶信息用於活動記錄
+      final userData = await _getData('users/$userId');
+      String userName = '未知用戶';
+      String userRole = '未知';
+      
+      if (userData != null) {
+        final user = userData as Map<dynamic, dynamic>;
+        userName = user['name']?.toString() ?? '未知用戶';
+        userRole = user['role']?.toString() ?? '未知';
+      }
+
+      final success = await _deleteData('users/$userId');
+      
+      if (success) {
+        // 添加活動記錄
+        await addActivity(
+          'user_deletion',
+          '刪除用戶',
+          '刪除用戶：$userName ($userRole)',
+          'admin',
+          '管理員',
+          metadata: {
+            'deleted_user_id': userId,
+            'deleted_user_name': userName,
+            'deleted_user_role': userRole,
+          },
+        );
+        
+        return {'success': true, 'message': '用戶刪除成功'};
+      } else {
+        return {'success': false, 'message': '刪除用戶失敗'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '刪除用戶失敗：$e'};
     }
   }
 } 
