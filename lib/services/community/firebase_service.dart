@@ -288,6 +288,7 @@ class FirebaseService {
           'success': true,
           'message': '邀請碼生成成功',
           'code': code,
+          'expiresAt': expiresAt.toIso8601String(),
         };
       } else {
         return {'success': false, 'message': '生成邀請碼失敗'};
@@ -352,7 +353,12 @@ class FirebaseService {
         return {'success': false, 'message': '邀請碼已被使用'};
       }
       
-      final expiresAt = DateTime.parse(data['expires_at']);
+      final expiresAtString = data['expires_at']?.toString();
+      if (expiresAtString == null || expiresAtString.isEmpty) {
+        return {'success': false, 'message': '邀請碼格式錯誤'};
+      }
+      
+      final expiresAt = DateTime.parse(expiresAtString);
       if (expiresAt.isBefore(DateTime.now())) {
         return {'success': false, 'message': '邀請碼已過期'};
       }

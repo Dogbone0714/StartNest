@@ -192,51 +192,14 @@ class _ResidentMaintenanceScreenState extends State<ResidentMaintenanceScreen> {
                                 style: const TextStyle(fontWeight: FontWeight.bold),
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 8),
-                                  Flexible(
-                                    child: Text(
-                                      request['description'],
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 3,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: _getStatusColor(request['status']),
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Text(
-                                          _getStatusText(request['status']),
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      Flexible(
-                                        child: Text(
-                                          '提交時間：${_formatDateTime(request['created_at'])}',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                              subtitle: Text(
+                                '${request['description']}\n狀態：${_getStatusText(request['status'])} | 提交時間：${_formatDateTime(request['created_at'])}',
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 4,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
                           );

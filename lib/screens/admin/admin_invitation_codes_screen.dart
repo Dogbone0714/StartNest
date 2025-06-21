@@ -116,7 +116,7 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
                 formKey.currentState!.save();
                 Navigator.of(context).pop({
                   'validDays': validDays,
-                  'unit': unit,
+                  'unit': _unitController.text.trim(),
                 });
               }
             },
@@ -203,6 +203,16 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
   }
 
   Future<void> _deleteInvitationCode(String code) async {
+    if (code.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('邀請碼不能為空'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -332,6 +342,24 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
     }
   }
 
+  String _buildInvitationCodeSubtitle(Map<String, dynamic> code) {
+    final subtitleParts = [
+      '創建時間：${_formatDateTime(code['created_at'])}',
+      '過期時間：${_formatDateTime(code['expires_at'])}',
+    ];
+
+    if (code['unit'] != null && code['unit'].toString().isNotEmpty) {
+      subtitleParts.add('預設房號：${code['unit']}');
+    }
+
+    if (code['is_used'] == true) {
+      subtitleParts.add('使用時間：${_formatDateTime(code['used_at'])}');
+      subtitleParts.add('使用用戶：${code['used_by']?.toString() ?? '未知用戶'}');
+    }
+
+    return subtitleParts.join('\n');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -418,7 +446,7 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
                                 children: [
                                   Flexible(
                                     child: Text(
-                                      code['code'],
+                                      code['code']?.toString() ?? '未知邀請碼',
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontFamily: 'monospace',
@@ -446,53 +474,24 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
                                   ),
                                 ],
                               ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      '創建時間：${_formatDateTime(code['created_at'])}',
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  Flexible(
-                                    child: Text(
-                                      '過期時間：${_formatDateTime(code['expires_at'])}',
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  if (code['unit'] != null && code['unit'].isNotEmpty)
-                                    Flexible(
-                                      child: Text(
-                                        '預設房號：${code['unit']}',
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  if (code['is_used'] == true) ...[
-                                    Flexible(
-                                      child: Text(
-                                        '使用時間：${_formatDateTime(code['used_at'])}',
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    Flexible(
-                                      child: Text(
-                                        '使用用戶：${code['used_by']}',
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ],
+                              subtitle: Text(
+                                _buildInvitationCodeSubtitle(code),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 5,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
                               ),
                               trailing: PopupMenuButton<String>(
                                 onSelected: (value) {
                                   if (value == 'copy') {
-                                    Clipboard.setData(ClipboardData(text: code['code']));
+                                    Clipboard.setData(ClipboardData(text: code['code']?.toString() ?? ''));
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text('邀請碼已複製到剪貼板')),
                                     );
                                   } else if (value == 'delete') {
-                                    _deleteInvitationCode(code['code']);
+                                    _deleteInvitationCode(code['code']?.toString() ?? '');
                                   }
                                 },
                                 itemBuilder: (context) => [

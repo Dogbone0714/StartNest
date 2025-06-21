@@ -35,8 +35,14 @@ class AdminProfileScreen extends StatelessWidget {
                 leading: const CircleAvatar(
                   child: Icon(Icons.admin_panel_settings),
                 ),
-                title: Text(userInfo?['name'] ?? ''),
-                subtitle: Text('${userInfo?['building'] ?? ''}${userInfo?['unit'] ?? ''}'),
+                title: Text(
+                  userInfo?['name'] ?? '',
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text(
+                  '${userInfo?['building'] ?? ''}${userInfo?['unit'] ?? ''}',
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ),
             const SizedBox(height: 16),

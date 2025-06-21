@@ -110,26 +110,14 @@ class _ResidentAnnouncementsScreenState extends State<ResidentAnnouncementsScree
                                 style: const TextStyle(fontWeight: FontWeight.bold),
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 8),
-                                  Flexible(
-                                    child: Text(
-                                      announcement['content'],
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 3,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    '發布時間：${_formatDateTime(announcement['created_at'])}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
+                              subtitle: Text(
+                                '${announcement['content']}\n發布時間：${_formatDateTime(announcement['created_at'])}',
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 4,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
                           );

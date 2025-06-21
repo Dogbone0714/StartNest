@@ -363,26 +363,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                         _getActivityIcon(activityType),
                                         color: _getActivityColor(activityType),
                                       ),
-                                      title: Text(activityTitle),
-                                      subtitle: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Flexible(
-                                            child: Text(
-                                              displayContent,
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 2,
-                                            ),
-                                          ),
-                                          if (activityType == 'announcement' && metadata['full_content'] != null)
-                                            TextButton(
-                                              onPressed: () {
-                                                _showAnnouncementDetail(metadata['title']?.toString() ?? '', 
-                                                                      metadata['full_content']?.toString() ?? '');
-                                              },
-                                              child: const Text('查看完整內容'),
-                                            ),
-                                        ],
+                                      title: Text(
+                                        activityTitle,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      subtitle: Text(
+                                        displayContent,
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 2,
                                       ),
                                       trailing: Text(
                                         _formatTimeAgo(activity['created_at']?.toString()),
@@ -391,6 +379,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                           color: Colors.grey,
                                         ),
                                       ),
+                                      onTap: activityType == 'announcement' && metadata['full_content'] != null
+                                          ? () {
+                                              _showAnnouncementDetail(
+                                                metadata['title']?.toString() ?? '', 
+                                                metadata['full_content']?.toString() ?? ''
+                                              );
+                                            }
+                                          : null,
                                     );
                                   }).toList(),
                                 ),
