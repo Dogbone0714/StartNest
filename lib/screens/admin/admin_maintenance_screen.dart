@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/community/firebase_service.dart';
 import '../../utils/constants/app_constants.dart';
+import 'admin_maintenance_detail_screen.dart';
 
 class AdminMaintenanceScreen extends StatefulWidget {
   const AdminMaintenanceScreen({super.key});
@@ -95,6 +96,19 @@ class _AdminMaintenanceScreenState extends State<AdminMaintenanceScreen> {
     }
   }
 
+  String _formatDateTime(String? dateTimeString) {
+    if (dateTimeString == null || dateTimeString.isEmpty) {
+      return '未知時間';
+    }
+    
+    try {
+      final dateTime = DateTime.parse(dateTimeString);
+      return '${dateTime.year}年${dateTime.month.toString().padLeft(2, '0')}月${dateTime.day.toString().padLeft(2, '0')}日 ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return '時間格式錯誤';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,19 +153,56 @@ class _AdminMaintenanceScreenState extends State<AdminMaintenanceScreen> {
                               vertical: 8,
                             ),
                             child: ListTile(
+                              leading: Icon(
+                                Icons.build,
+                                color: _getStatusColor(request['status']),
+                              ),
                               title: Text(
                                 request['title'],
                                 style: const TextStyle(fontWeight: FontWeight.bold),
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              subtitle: Text(
-                                '${request['description']}\n狀態：${_getStatusText(request['status'])} | 提交時間：${request['created_at']}',
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 4,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    request['description'],
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _getStatusColor(request['status']),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          _getStatusText(request['status']),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        _formatDateTime(request['created_at']),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                               trailing: PopupMenuButton<String>(
                                 onSelected: (value) {
@@ -172,6 +223,13 @@ class _AdminMaintenanceScreenState extends State<AdminMaintenanceScreen> {
                                   ),
                                 ],
                               ),
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => AdminMaintenanceDetailScreen(
+                                    maintenanceRequest: request,
+                                  ),
+                                ),
+                              ),
                             ),
                           );
                         },
@@ -179,4 +237,4 @@ class _AdminMaintenanceScreenState extends State<AdminMaintenanceScreen> {
                     ),
     );
   }
-}
+} 

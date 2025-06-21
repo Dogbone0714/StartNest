@@ -7,11 +7,13 @@ class AuthService extends ChangeNotifier {
   String _currentUserId = '';
   String _userRole = '';
   String _userName = '';
+  String _userUnit = '';
 
   bool get isAuthenticated => _isAuthenticated;
   String get currentUserId => _currentUserId;
   String get userRole => _userRole;
   String get userName => _userName;
+  String get userUnit => _userUnit;
 
   Future<bool> login(String username, String password) async {
     try {
@@ -22,6 +24,7 @@ class AuthService extends ChangeNotifier {
         _currentUserId = username;
         _userRole = user['role'];
         _userName = user['name'];
+        _userUnit = user['unit'] ?? '';
 
         // 保存登入狀態
         final prefs = await SharedPreferences.getInstance();
@@ -29,6 +32,7 @@ class AuthService extends ChangeNotifier {
         await prefs.setString('currentUserId', _currentUserId);
         await prefs.setString('userRole', _userRole);
         await prefs.setString('userName', _userName);
+        await prefs.setString('userUnit', _userUnit);
 
         notifyListeners();
         return true;
@@ -44,6 +48,7 @@ class AuthService extends ChangeNotifier {
     _currentUserId = '';
     _userRole = '';
     _userName = '';
+    _userUnit = '';
 
     // 清除登入狀態
     final prefs = await SharedPreferences.getInstance();
@@ -51,6 +56,7 @@ class AuthService extends ChangeNotifier {
     await prefs.remove('currentUserId');
     await prefs.remove('userRole');
     await prefs.remove('userName');
+    await prefs.remove('userUnit');
 
     notifyListeners();
   }
@@ -61,6 +67,7 @@ class AuthService extends ChangeNotifier {
     _currentUserId = prefs.getString('currentUserId') ?? '';
     _userRole = prefs.getString('userRole') ?? '';
     _userName = prefs.getString('userName') ?? '';
+    _userUnit = prefs.getString('userUnit') ?? '';
     notifyListeners();
   }
 
@@ -106,6 +113,7 @@ class AuthService extends ChangeNotifier {
       'username': _currentUserId,
       'name': _userName,
       'role': _userRole,
+      'unit': _userUnit,
     };
   }
 } 

@@ -1,29 +1,25 @@
 import 'package:flutter/material.dart';
-import 'admin_home_screen.dart';
-import 'admin_announcements_screen.dart';
-import 'admin_maintenance_screen.dart';
-import 'admin_residents_screen.dart';
-import 'admin_invitation_codes_screen.dart';
-import 'admin_voting_screen.dart';
-import 'admin_profile_screen.dart';
+import 'resident_home_screen.dart';
+import 'resident_announcements_screen.dart';
+import 'resident_maintenance_screen.dart';
+import 'resident_voting_screen.dart';
+import 'resident_profile_screen.dart';
 
-class AdminMainScreen extends StatefulWidget {
-  const AdminMainScreen({super.key});
+class ResidentMainScreen extends StatefulWidget {
+  const ResidentMainScreen({super.key});
 
   @override
-  State<AdminMainScreen> createState() => _AdminMainScreenState();
+  State<ResidentMainScreen> createState() => _ResidentMainScreenState();
 }
 
-class _AdminMainScreenState extends State<AdminMainScreen> {
+class _ResidentMainScreenState extends State<ResidentMainScreen> {
   int _currentIndex = 0;
   final List<Widget> _pages = const [
-    AdminDashboardScreen(),
-    AdminAnnouncementsScreen(),
-    AdminMaintenanceScreen(),
-    AdminResidentsScreen(),
-    AdminInvitationCodesScreen(),
-    AdminVotingScreen(),
-    AdminProfileScreen(),
+    ResidentHomeScreen(),
+    ResidentAnnouncementsScreen(),
+    ResidentMaintenanceScreen(),
+    ResidentVotingScreen(),
+    ResidentProfileScreen(),
   ];
 
   @override
@@ -40,8 +36,8 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
         },
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: '儀表板',
+            icon: Icon(Icons.home),
+            label: '首頁',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.announcement),
@@ -50,14 +46,6 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.build),
             label: '維修',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: '住戶',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code),
-            label: '邀請碼',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.how_to_vote),

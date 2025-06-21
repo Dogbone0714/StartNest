@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/community/firebase_service.dart';
 import '../../utils/constants/app_constants.dart';
+import 'add_maintenance_request_screen.dart';
+import 'maintenance_detail_screen.dart';
 
 class ResidentMaintenanceScreen extends StatefulWidget {
   const ResidentMaintenanceScreen({super.key});
@@ -62,58 +64,14 @@ class _ResidentMaintenanceScreenState extends State<ResidentMaintenanceScreen> {
   }
 
   Future<void> _addMaintenanceRequest() async {
-    final titleController = TextEditingController();
-    final descriptionController = TextEditingController();
-
-    final result = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('新增維修請求'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleController,
-              decoration: const InputDecoration(labelText: '標題'),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: descriptionController,
-              decoration: const InputDecoration(labelText: '描述'),
-              maxLines: 3,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final addResult = await FirebaseService.addMaintenanceRequest(
-                titleController.text,
-                descriptionController.text,
-              );
-              Navigator.of(context).pop(addResult);
-            },
-            child: const Text('提交'),
-          ),
-        ],
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const AddMaintenanceRequestScreen(),
       ),
     );
 
-    if (result != null) {
-      if (result['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'])),
-        );
-        _loadMaintenanceRequests();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'])),
-        );
-      }
+    if (result == true) {
+      _loadMaintenanceRequests();
     }
   }
 
@@ -141,6 +99,44 @@ class _ResidentMaintenanceScreenState extends State<ResidentMaintenanceScreen> {
       default:
         return Colors.grey;
     }
+  }
+
+  void _showRequestDetails(Map<String, dynamic> request) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(request['title']),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('描述：${request['description']}'),
+              if (request['location']?.isNotEmpty == true) ...[
+                const SizedBox(height: 8),
+                Text('位置：${request['location']}'),
+              ],
+              const SizedBox(height: 8),
+              Text('狀態：${_getStatusText(request['status'])}'),
+              const SizedBox(height: 8),
+              Text('提交時間：${_formatDateTime(request['created_at'])}'),
+              if (request['attachments']?.isNotEmpty == true) ...[
+                const SizedBox(height: 8),
+                const Text('附件：'),
+                const SizedBox(height: 4),
+                Text('共 ${request['attachments'].length} 張圖片'),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('關閉'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -181,24 +177,84 @@ class _ResidentMaintenanceScreenState extends State<ResidentMaintenanceScreen> {
                         itemCount: _maintenanceRequests.length,
                         itemBuilder: (context, index) {
                           final request = _maintenanceRequests[index];
+                          final hasAttachments = request['attachments']?.isNotEmpty == true;
+                          
                           return Card(
                             margin: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 8,
                             ),
                             child: ListTile(
+                              leading: Icon(
+                                hasAttachments ? Icons.attach_file : Icons.build,
+                                color: hasAttachments ? Colors.blue : Colors.grey,
+                              ),
                               title: Text(
                                 request['title'],
                                 style: const TextStyle(fontWeight: FontWeight.bold),
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              subtitle: Text(
-                                '${request['description']}\n狀態：${_getStatusText(request['status'])} | 提交時間：${_formatDateTime(request['created_at'])}',
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 4,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    request['description'],
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _getStatusColor(request['status']),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          _getStatusText(request['status']),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      if (hasAttachments) ...[
+                                        const SizedBox(width: 8),
+                                        const Icon(
+                                          Icons.attach_file,
+                                          size: 16,
+                                          color: Colors.blue,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${request['attachments'].length}',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _formatDateTime(request['created_at']),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => MaintenanceDetailScreen(
+                                    maintenanceRequest: request,
+                                  ),
                                 ),
                               ),
                             ),

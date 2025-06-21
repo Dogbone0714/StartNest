@@ -27,7 +27,7 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
     
     return Scaffold(
       appBar: AppBar(
-        title: Text('歡迎，${authService.userName}'),
+        title: Text('歡迎，${authService.userName}${authService.userUnit.isNotEmpty ? ' (${authService.userUnit})' : ''}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications),
@@ -89,7 +89,7 @@ class ResidentDashboard extends StatelessWidget {
                   ),
                   const SizedBox(height: AppConstants.paddingSmall),
                   Text(
-                    '${authService.userName}',
+                    '${authService.userName}${authService.userUnit.isNotEmpty ? ' (${authService.userUnit})' : ''}',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ],

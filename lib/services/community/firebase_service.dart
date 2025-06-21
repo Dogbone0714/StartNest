@@ -574,6 +574,8 @@ class FirebaseService {
             'id': entry.key,
             'title': requestData['title']?.toString() ?? '',
             'description': requestData['description']?.toString() ?? '',
+            'location': requestData['location']?.toString() ?? '',
+            'attachments': requestData['attachments'] ?? [],
             'status': requestData['status']?.toString() ?? 'pending',
             'created_by': requestData['created_by']?.toString() ?? '',
             'created_at': requestData['created_at']?.toString() ?? '',
@@ -593,13 +595,17 @@ class FirebaseService {
 
   static Future<Map<String, dynamic>> addMaintenanceRequest(
     String title,
-    String description,
-  ) async {
+    String description, {
+    String? location,
+    List<String>? attachments,
+  }) async {
     try {
       final id = DateTime.now().millisecondsSinceEpoch.toString();
       final success = await _setData('maintenance_requests/$id', {
         'title': title,
         'description': description,
+        'location': location ?? '',
+        'attachments': attachments ?? [],
         'status': 'pending',
         'created_by': 'resident',
         'created_at': DateTime.now().toIso8601String(),
@@ -617,6 +623,8 @@ class FirebaseService {
             'request_id': id,
             'title': title,
             'status': 'pending',
+            'location': location,
+            'has_attachments': attachments?.isNotEmpty ?? false,
           },
         );
         
@@ -655,6 +663,49 @@ class FirebaseService {
     } catch (e) {
       print('Error updating maintenance request status: $e');
       return false;
+    }
+  }
+
+  static Future<Map<String, dynamic>> getMaintenanceRequestDetails(String requestId) async {
+    try {
+      final data = await _getData('maintenance_requests/$requestId');
+      if (data != null) {
+        final requestData = data as Map<dynamic, dynamic>;
+        
+        // 獲取提交者信息
+        String residentName = '未知';
+        String contactPhone = '未提供';
+        
+        if (requestData['created_by'] != null) {
+          final userData = await _getData('users/${requestData['created_by']}');
+          if (userData != null) {
+            final user = userData as Map<dynamic, dynamic>;
+            residentName = user['name']?.toString() ?? '未知';
+            contactPhone = user['phone']?.toString() ?? '未提供';
+          }
+        }
+        
+        return {
+          'success': true,
+          'request': {
+            'id': requestId,
+            'title': requestData['title']?.toString() ?? '',
+            'description': requestData['description']?.toString() ?? '',
+            'location': requestData['location']?.toString() ?? '',
+            'priority': requestData['priority']?.toString() ?? 'medium',
+            'attachments': requestData['attachments'] ?? [],
+            'status': requestData['status']?.toString() ?? 'pending',
+            'created_by': requestData['created_by']?.toString() ?? '',
+            'created_at': requestData['created_at']?.toString() ?? '',
+            'updated_at': requestData['updated_at']?.toString(),
+            'resident_name': residentName,
+            'contact_phone': contactPhone,
+          },
+        };
+      }
+      return {'success': false, 'message': '維修請求不存在'};
+    } catch (e) {
+      return {'success': false, 'message': '獲取維修請求詳情失敗：$e'};
     }
   }
 
@@ -919,79 +970,84 @@ class FirebaseService {
     }
   }
 
-  // 推播通知相關方法
-  static Future<Map<String, dynamic>> sendPushNotification({
+  // 表決相關方法
+  static Future<Map<String, dynamic>> createVotingTopic({
     required String title,
-    required String body,
-    required String topic,
-    Map<String, dynamic>? data,
+    required String description,
+    required DateTime startDate,
+    required DateTime endDate,
+    required String createdBy,
   }) async {
     try {
-      // 這裡需要調用Firebase Cloud Messaging API
-      // 由於這是前端，我們需要通過後端API來發送推播
-      // 或者使用Firebase Functions
-      
-      // 暫時保存推播記錄到Firebase
-      final notificationId = DateTime.now().millisecondsSinceEpoch.toString();
-      final success = await _setData('notifications/$notificationId', {
+      final topicId = DateTime.now().millisecondsSinceEpoch.toString();
+      final success = await _setData('voting_topics/$topicId', {
         'title': title,
-        'body': body,
-        'topic': topic,
-        'data': data ?? {},
+        'description': description,
+        'start_date': startDate.toIso8601String(),
+        'end_date': endDate.toIso8601String(),
+        'created_by': createdBy,
         'created_at': DateTime.now().toIso8601String(),
-        'status': 'pending', // pending, sent, failed
+        'status': 'active',
+        'votes': {},
+        'total_votes': 0,
+        'approve_votes': 0,
+        'reject_votes': 0,
+        'abstain_votes': 0,
       });
 
       if (success) {
         // 添加活動記錄
         await addActivity(
-          'push_notification',
-          '發送推播通知',
-          '發送推播：$title',
-          'admin',
+          'voting_topic_created',
+          '創建表決議題',
+          '創建表決議題：$title',
+          createdBy,
           '管理員',
           metadata: {
-            'notification_id': notificationId,
+            'topic_id': topicId,
             'title': title,
-            'body': body,
-            'topic': topic,
-            'data': data,
+            'start_date': startDate.toIso8601String(),
+            'end_date': endDate.toIso8601String(),
           },
         );
 
         return {
           'success': true,
-          'message': '推播通知已排程發送',
-          'notification_id': notificationId,
+          'message': '表決議題創建成功',
+          'topic_id': topicId,
         };
       } else {
-        return {'success': false, 'message': '發送推播通知失敗'};
+        return {'success': false, 'message': '創建表決議題失敗'};
       }
     } catch (e) {
-      return {'success': false, 'message': '發送推播通知失敗：$e'};
+      return {'success': false, 'message': '創建表決議題失敗：$e'};
     }
   }
 
-  // 獲取推播通知歷史
-  static Future<Map<String, dynamic>> getNotificationHistory() async {
+  static Future<Map<String, dynamic>> getAllVotingTopics() async {
     try {
-      final data = await _getData('notifications');
+      final data = await _getData('voting_topics');
       if (data != null) {
-        final notifications = data.entries.map((entry) {
-          final notificationData = entry.value as Map<dynamic, dynamic>;
+        final topics = data.entries.map((entry) {
+          final topicData = entry.value as Map<dynamic, dynamic>;
           return {
             'id': entry.key,
-            'title': notificationData['title']?.toString() ?? '',
-            'body': notificationData['body']?.toString() ?? '',
-            'topic': notificationData['topic']?.toString() ?? '',
-            'status': notificationData['status']?.toString() ?? 'pending',
-            'created_at': notificationData['created_at']?.toString() ?? '',
-            'data': notificationData['data'] ?? {},
+            'title': topicData['title']?.toString() ?? '',
+            'description': topicData['description']?.toString() ?? '',
+            'start_date': topicData['start_date']?.toString() ?? '',
+            'end_date': topicData['end_date']?.toString() ?? '',
+            'created_by': topicData['created_by']?.toString() ?? '',
+            'created_at': topicData['created_at']?.toString() ?? '',
+            'status': topicData['status']?.toString() ?? 'draft',
+            'total_votes': topicData['total_votes'] ?? 0,
+            'approve_votes': topicData['approve_votes'] ?? 0,
+            'reject_votes': topicData['reject_votes'] ?? 0,
+            'abstain_votes': topicData['abstain_votes'] ?? 0,
           };
         }).toList();
 
-        // 按時間排序
-        notifications.sort((a, b) {
+        // 按創建時間排序
+        topics.sort((a, b) {
           final aTime = DateTime.tryParse(a['created_at'] ?? '') ?? DateTime(1900);
           final bTime = DateTime.tryParse(b['created_at'] ?? '') ?? DateTime(1900);
           return bTime.compareTo(aTime);
@@ -999,59 +1055,133 @@ class FirebaseService {
 
         return {
           'success': true,
-          'notifications': notifications,
+          'topics': topics,
         };
       }
-      return {'success': true, 'notifications': []};
+      return {'success': true, 'topics': []};
     } catch (e) {
-      return {'success': false, 'message': '獲取推播歷史失敗：$e'};
+      return {'success': false, 'message': '獲取表決議題失敗：$e'};
     }
   }
 
-  // 保存用戶FCM Token
-  static Future<Map<String, dynamic>> saveUserFcmToken(
-    String userId,
-    String fcmToken,
-  ) async {
+  static Future<Map<String, dynamic>> voteOnTopic({
+    required String topicId,
+    required String userId,
+    required String vote, // 'approve', 'reject', 'abstain'
+  }) async {
     try {
-      final success = await _updateData('users/$userId', {
-        'fcm_token': fcmToken,
-        'last_token_update': DateTime.now().toIso8601String(),
+      // 獲取當前議題數據
+      final topicData = await _getData('voting_topics/$topicId');
+      if (topicData == null) {
+        return {'success': false, 'message': '議題不存在'};
+      }
+
+      final topic = topicData as Map<dynamic, dynamic>;
+      final votes = <String, String>{};
+      
+      // 解析現有投票
+      if (topic['votes'] != null) {
+        final votesMap = topic['votes'] as Map<dynamic, dynamic>;
+        votesMap.forEach((key, value) {
+          votes[key.toString()] = value.toString();
+        });
+      }
+
+      // 更新投票
+      votes[userId] = vote;
+
+      // 計算投票統計
+      int approveVotes = 0;
+      int rejectVotes = 0;
+      int abstainVotes = 0;
+
+      votes.forEach((_, voteValue) {
+        switch (voteValue) {
+          case 'approve':
+            approveVotes++;
+            break;
+          case 'reject':
+            rejectVotes++;
+            break;
+          case 'abstain':
+            abstainVotes++;
+            break;
+        }
+      });
+
+      // 更新議題數據
+      final success = await _updateData('voting_topics/$topicId', {
+        'votes': votes,
+        'total_votes': votes.length,
+        'approve_votes': approveVotes,
+        'reject_votes': rejectVotes,
+        'abstain_votes': abstainVotes,
       });
 
       if (success) {
-        return {'success': true, 'message': 'FCM Token保存成功'};
-      } else {
-        return {'success': false, 'message': 'FCM Token保存失敗'};
-      }
-    } catch (e) {
-      return {'success': false, 'message': 'FCM Token保存失敗：$e'};
-    }
-  }
-
-  // 獲取所有用戶的FCM Token
-  static Future<Map<String, dynamic>> getAllUserFcmTokens() async {
-    try {
-      final data = await _getData('users');
-      if (data != null) {
-        final tokens = <String, String>{};
-        
-        data.entries.forEach((entry) {
-          final userData = entry.value as Map<dynamic, dynamic>;
-          final fcmToken = userData['fcm_token']?.toString();
-          if (fcmToken != null && fcmToken.isNotEmpty) {
-            tokens[entry.key] = fcmToken;
-          }
-        });
+        // 添加活動記錄
+        await addActivity(
+          'voting_vote_cast',
+          '投票',
+          '對議題「${topic['title']}」進行投票',
+          userId,
+          '住戶',
+          metadata: {
+            'topic_id': topicId,
+            'topic_title': topic['title'],
+            'vote': vote,
+          },
+        );
 
         return {
           'success': true,
-          'tokens': tokens,
+          'message': '投票成功',
+          'vote': vote,
+        };
+      } else {
+        return {'success': false, 'message': '投票失敗'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '投票失敗：$e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getVotingTopicDetails(String topicId) async {
+    try {
+      final data = await _getData('voting_topics/$topicId');
+      if (data != null) {
+        final topicData = data as Map<dynamic, dynamic>;
+        final votes = <String, String>{};
+        
+        if (topicData['votes'] != null) {
+          final votesMap = topicData['votes'] as Map<dynamic, dynamic>;
+          votesMap.forEach((key, value) {
+            votes[key.toString()] = value.toString();
+          });
+        }
+
+        return {
+          'success': true,
+          'topic': {
+            'id': topicId,
+            'title': topicData['title']?.toString() ?? '',
+            'description': topicData['description']?.toString() ?? '',
+            'start_date': topicData['start_date']?.toString() ?? '',
+            'end_date': topicData['end_date']?.toString() ?? '',
+            'created_by': topicData['created_by']?.toString() ?? '',
+            'created_at': topicData['created_at']?.toString() ?? '',
+            'status': topicData['status']?.toString() ?? 'draft',
+            'votes': votes,
+            'total_votes': topicData['total_votes'] ?? 0,
+            'approve_votes': topicData['approve_votes'] ?? 0,
+            'reject_votes': topicData['reject_votes'] ?? 0,
+            'abstain_votes': topicData['abstain_votes'] ?? 0,
+          },
         };
       }
-      return {'success': true, 'tokens': {}};
+      return {'success': false, 'message': '議題不存在'};
     } catch (e) {
-      return {'success': false, 'message': '獲取FCM Token失敗：$e'};
+      return {'success': false, 'message': '獲取議題詳情失敗：$e'};
     }
   }
 } 
