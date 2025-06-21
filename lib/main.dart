@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'screens/auth/login_screen.dart';
 import 'services/community/auth_service.dart';
-import 'services/community/serverpod_client_service.dart';
 import 'utils/constants/app_constants.dart';
 
-void main() {
-  // 初始化Serverpod客戶端
-  const serverUrl = String.fromEnvironment('SERVER_URL', defaultValue: 'http://localhost:8080/');
-  ServerpodClientService.initializeClient(serverUrl);
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // 初始化 Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   
   runApp(const MyApp());
 }

@@ -1,5 +1,5 @@
 import 'package:serverpod/serverpod.dart';
-import '../services/database_service.dart';
+import '../services/firebase_service.dart';
 import '../models/user_model.dart';
 import '../models/invitation_code_model.dart';
 
@@ -9,8 +9,8 @@ class AuthEndpoint extends Endpoint {
 
   @override
   Future<void> startup() async {
-    // 初始化資料庫
-    await DatabaseService.initializeDatabase();
+    // 初始化 Firebase 資料庫
+    await FirebaseService.initializeFirebase();
   }
 
   /// 用戶登入
@@ -20,7 +20,7 @@ class AuthEndpoint extends Endpoint {
     required String password,
   }) async {
     try {
-      final user = await DatabaseService.getUserByUsername(username);
+      final user = await FirebaseService.getUserByUsername(username);
       
       if (user != null && user.password == password) {
         return {
@@ -42,7 +42,7 @@ class AuthEndpoint extends Endpoint {
     required String username,
   }) async {
     try {
-      final user = await DatabaseService.getUserByUsername(username);
+      final user = await FirebaseService.getUserByUsername(username);
       
       if (user != null) {
         return {
@@ -61,7 +61,7 @@ class AuthEndpoint extends Endpoint {
   /// 獲取所有用戶列表
   Future<Map<String, dynamic>> getAllUsers(Session session) async {
     try {
-      final users = await DatabaseService.getAllUsers();
+      final users = await FirebaseService.getAllUsers();
       final userMaps = users.map((user) => user.toMapWithoutPassword()).toList();
       
       return {
@@ -77,7 +77,7 @@ class AuthEndpoint extends Endpoint {
   /// 獲取所有住戶列表
   Future<Map<String, dynamic>> getAllResidents(Session session) async {
     try {
-      final residents = await DatabaseService.getAllResidents();
+      final residents = await FirebaseService.getAllResidents();
       final residentMaps = residents.map((user) => user.toMapWithoutPassword()).toList();
       
       return {
@@ -100,7 +100,7 @@ class AuthEndpoint extends Endpoint {
   }) async {
     try {
       // 檢查用戶名是否已存在
-      final existingUser = await DatabaseService.getUserByUsername(username);
+      final existingUser = await FirebaseService.getUserByUsername(username);
       if (existingUser != null) {
         return {'success': false, 'message': '用戶名已存在'};
       }
@@ -114,7 +114,7 @@ class AuthEndpoint extends Endpoint {
         unit: unit,
       );
 
-      final success = await DatabaseService.createUser(user);
+      final success = await FirebaseService.createUser(user);
       
       if (success) {
         return {'success': true, 'message': '住戶新增成功'};
@@ -137,7 +137,7 @@ class AuthEndpoint extends Endpoint {
         return {'success': false, 'message': '管理員帳號不可刪除'};
       }
 
-      final success = await DatabaseService.deleteUser(username);
+      final success = await FirebaseService.deleteUser(username);
       
       if (success) {
         return {'success': true, 'message': '住戶刪除成功'};
@@ -158,7 +158,7 @@ class AuthEndpoint extends Endpoint {
     required String unit,
   }) async {
     try {
-      final success = await DatabaseService.updateUser(username, name, unit);
+      final success = await FirebaseService.updateUser(username, name, unit);
       
       if (success) {
         return {'success': true, 'message': '住戶信息更新成功'};
@@ -191,14 +191,13 @@ class AuthEndpoint extends Endpoint {
         unit: unit,
       );
 
-      final success = await DatabaseService.createInvitationCode(invitationCode);
+      final success = await FirebaseService.createInvitationCode(invitationCode);
       
       if (success) {
         return {
           'success': true,
           'message': '邀請碼生成成功',
           'code': code,
-          'expiresAt': expiresAt.toIso8601String(),
         };
       } else {
         return {'success': false, 'message': '生成邀請碼失敗'};
@@ -212,13 +211,8 @@ class AuthEndpoint extends Endpoint {
   /// 獲取所有邀請碼列表
   Future<Map<String, dynamic>> getAllInvitationCodes(Session session) async {
     try {
-      final codes = await DatabaseService.getAllInvitationCodes();
-      final codeMaps = codes.map((code) {
-        final map = code.toMap();
-        map['isExpired'] = code.isExpired;
-        map['isValid'] = code.isValid;
-        return map;
-      }).toList();
+      final codes = await FirebaseService.getAllInvitationCodes();
+      final codeMaps = codes.map((code) => code.toMap()).toList();
       
       return {
         'success': true,
@@ -236,7 +230,7 @@ class AuthEndpoint extends Endpoint {
     required String code,
   }) async {
     try {
-      final success = await DatabaseService.deleteInvitationCode(code);
+      final success = await FirebaseService.deleteInvitationCode(code);
       
       if (success) {
         return {'success': true, 'message': '邀請碼刪除成功'};
@@ -255,24 +249,24 @@ class AuthEndpoint extends Endpoint {
     required String code,
   }) async {
     try {
-      final invitationCode = await DatabaseService.getInvitationCodeByCode(code);
+      final invitationCode = await FirebaseService.getInvitationCode(code);
       
       if (invitationCode == null) {
         return {'success': false, 'message': '邀請碼不存在'};
-      }
-      
-      if (invitationCode.isExpired) {
-        return {'success': false, 'message': '邀請碼已過期'};
       }
       
       if (invitationCode.isUsed) {
         return {'success': false, 'message': '邀請碼已被使用'};
       }
       
+      if (invitationCode.expiresAt.isBefore(DateTime.now())) {
+        return {'success': false, 'message': '邀請碼已過期'};
+      }
+      
       return {
         'success': true,
         'message': '邀請碼有效',
-        'unit': invitationCode.unit,
+        'code': invitationCode.toMap(),
       };
     } catch (e) {
       session.log('Validate invitation code error: $e');
@@ -287,21 +281,7 @@ class AuthEndpoint extends Endpoint {
     required String username,
   }) async {
     try {
-      final invitationCode = await DatabaseService.getInvitationCodeByCode(code);
-      
-      if (invitationCode == null) {
-        return {'success': false, 'message': '邀請碼不存在'};
-      }
-      
-      if (invitationCode.isExpired) {
-        return {'success': false, 'message': '邀請碼已過期'};
-      }
-      
-      if (invitationCode.isUsed) {
-        return {'success': false, 'message': '邀請碼已被使用'};
-      }
-      
-      final success = await DatabaseService.useInvitationCode(code, username);
+      final success = await FirebaseService.useInvitationCode(code, username);
       
       if (success) {
         return {'success': true, 'message': '邀請碼使用成功'};
@@ -326,7 +306,7 @@ class AuthEndpoint extends Endpoint {
   }) async {
     try {
       // 檢查用戶名是否已存在
-      final existingUser = await DatabaseService.getUserByUsername(username);
+      final existingUser = await FirebaseService.getUserByUsername(username);
       if (existingUser != null) {
         return {'success': false, 'message': '用戶名已存在'};
       }
@@ -340,7 +320,7 @@ class AuthEndpoint extends Endpoint {
         unit: unit,
       );
 
-      final success = await DatabaseService.createUser(user);
+      final success = await FirebaseService.createUser(user);
       
       if (success) {
         return {'success': true, 'message': '註冊成功'};

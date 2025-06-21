@@ -47,6 +47,7 @@ dependencies:
   serverpod_client: ^2.8.0
   community_garden_server_client:
     path: community_garden_server_client
+  firebase_core: ^2.0.0
 
 dev_dependencies:
   flutter_test:

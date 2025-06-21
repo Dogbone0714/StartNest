@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'serverpod_client_service.dart';
+import 'firebase_service.dart';
 
 class AuthService extends ChangeNotifier {
   bool _isAuthenticated = false;
@@ -15,7 +15,7 @@ class AuthService extends ChangeNotifier {
 
   Future<bool> login(String username, String password) async {
     try {
-      final result = await ServerpodClientService.login(username, password);
+      final result = await FirebaseService.login(username, password);
       if (result != null && result['success'] == true) {
         final user = result['user'];
         _isAuthenticated = true;
@@ -73,7 +73,7 @@ class AuthService extends ChangeNotifier {
       return {'success': false, 'message': '權限不足，僅管理員可刪除用戶'};
     }
     try {
-      final result = await ServerpodClientService.deleteResident(username);
+      final result = await FirebaseService.deleteResident(username);
       return result;
     } catch (e) {
       return {'success': false, 'message': '刪除用戶失敗：$e'};
@@ -83,17 +83,17 @@ class AuthService extends ChangeNotifier {
   // 獲取所有住戶列表
   Future<Map<String, dynamic>> getAllResidents() async {
     try {
-      final result = await ServerpodClientService.getAllResidents();
+      final result = await FirebaseService.getAllResidents();
       return result ?? {'success': false, 'message': '獲取住戶列表失敗'};
     } catch (e) {
       return {'success': false, 'message': '獲取住戶列表失敗：$e'};
     }
   }
 
-  // 測試後端連接
+  // 測試 Firebase 連接
   Future<bool> testBackendConnection() async {
     try {
-      final result = await ServerpodClientService.testConnection();
+      final result = await FirebaseService.getAllUsers();
       return result != null && result['success'] == true;
     } catch (e) {
       return false;
