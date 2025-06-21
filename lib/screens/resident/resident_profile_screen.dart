@@ -40,7 +40,7 @@ class ResidentProfileScreen extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: Text(
-                  '${userInfo?['building'] ?? ''}${userInfo?['unit'] ?? ''}',
+                  '房號：${userInfo?['unit'] ?? ''}',
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

@@ -918,4 +918,140 @@ class FirebaseService {
       return {'success': false, 'message': '刪除用戶失敗：$e'};
     }
   }
+
+  // 推播通知相關方法
+  static Future<Map<String, dynamic>> sendPushNotification({
+    required String title,
+    required String body,
+    required String topic,
+    Map<String, dynamic>? data,
+  }) async {
+    try {
+      // 這裡需要調用Firebase Cloud Messaging API
+      // 由於這是前端，我們需要通過後端API來發送推播
+      // 或者使用Firebase Functions
+      
+      // 暫時保存推播記錄到Firebase
+      final notificationId = DateTime.now().millisecondsSinceEpoch.toString();
+      final success = await _setData('notifications/$notificationId', {
+        'title': title,
+        'body': body,
+        'topic': topic,
+        'data': data ?? {},
+        'created_at': DateTime.now().toIso8601String(),
+        'status': 'pending', // pending, sent, failed
+      });
+
+      if (success) {
+        // 添加活動記錄
+        await addActivity(
+          'push_notification',
+          '發送推播通知',
+          '發送推播：$title',
+          'admin',
+          '管理員',
+          metadata: {
+            'notification_id': notificationId,
+            'title': title,
+            'body': body,
+            'topic': topic,
+            'data': data,
+          },
+        );
+
+        return {
+          'success': true,
+          'message': '推播通知已排程發送',
+          'notification_id': notificationId,
+        };
+      } else {
+        return {'success': false, 'message': '發送推播通知失敗'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '發送推播通知失敗：$e'};
+    }
+  }
+
+  // 獲取推播通知歷史
+  static Future<Map<String, dynamic>> getNotificationHistory() async {
+    try {
+      final data = await _getData('notifications');
+      if (data != null) {
+        final notifications = data.entries.map((entry) {
+          final notificationData = entry.value as Map<dynamic, dynamic>;
+          return {
+            'id': entry.key,
+            'title': notificationData['title']?.toString() ?? '',
+            'body': notificationData['body']?.toString() ?? '',
+            'topic': notificationData['topic']?.toString() ?? '',
+            'status': notificationData['status']?.toString() ?? 'pending',
+            'created_at': notificationData['created_at']?.toString() ?? '',
+            'data': notificationData['data'] ?? {},
+          };
+        }).toList();
+
+        // 按時間排序
+        notifications.sort((a, b) {
+          final aTime = DateTime.tryParse(a['created_at'] ?? '') ?? DateTime(1900);
+          final bTime = DateTime.tryParse(b['created_at'] ?? '') ?? DateTime(1900);
+          return bTime.compareTo(aTime);
+        });
+
+        return {
+          'success': true,
+          'notifications': notifications,
+        };
+      }
+      return {'success': true, 'notifications': []};
+    } catch (e) {
+      return {'success': false, 'message': '獲取推播歷史失敗：$e'};
+    }
+  }
+
+  // 保存用戶FCM Token
+  static Future<Map<String, dynamic>> saveUserFcmToken(
+    String userId,
+    String fcmToken,
+  ) async {
+    try {
+      final success = await _updateData('users/$userId', {
+        'fcm_token': fcmToken,
+        'last_token_update': DateTime.now().toIso8601String(),
+      });
+
+      if (success) {
+        return {'success': true, 'message': 'FCM Token保存成功'};
+      } else {
+        return {'success': false, 'message': 'FCM Token保存失敗'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'FCM Token保存失敗：$e'};
+    }
+  }
+
+  // 獲取所有用戶的FCM Token
+  static Future<Map<String, dynamic>> getAllUserFcmTokens() async {
+    try {
+      final data = await _getData('users');
+      if (data != null) {
+        final tokens = <String, String>{};
+        
+        data.entries.forEach((entry) {
+          final userData = entry.value as Map<dynamic, dynamic>;
+          final fcmToken = userData['fcm_token']?.toString();
+          if (fcmToken != null && fcmToken.isNotEmpty) {
+            tokens[entry.key] = fcmToken;
+          }
+        });
+
+        return {
+          'success': true,
+          'tokens': tokens,
+        };
+      }
+      return {'success': true, 'tokens': {}};
+    } catch (e) {
+      return {'success': false, 'message': '獲取FCM Token失敗：$e'};
+    }
+  }
 } 

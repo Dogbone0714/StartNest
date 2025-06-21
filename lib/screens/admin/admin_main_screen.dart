@@ -4,6 +4,7 @@ import 'admin_announcements_screen.dart';
 import 'admin_maintenance_screen.dart';
 import 'admin_residents_screen.dart';
 import 'admin_invitation_codes_screen.dart';
+import 'admin_notifications_screen.dart';
 import 'admin_profile_screen.dart';
 
 class AdminMainScreen extends StatefulWidget {
@@ -21,6 +22,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
     AdminMaintenanceScreen(),
     AdminResidentsScreen(),
     AdminInvitationCodesScreen(),
+    AdminNotificationsScreen(),
     AdminProfileScreen(),
   ];
 
@@ -56,6 +58,10 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.qr_code),
             label: '邀請碼',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications),
+            label: '推播',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),

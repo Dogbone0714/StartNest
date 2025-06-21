@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/auth/login_screen.dart';
 import 'services/community/auth_service.dart';
+import 'services/community/notification_service.dart';
 import 'utils/constants/app_constants.dart';
 
 void main() async {
@@ -14,6 +15,9 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  
+  // 初始化通知服務
+  await NotificationService().initialize();
   
   runApp(const MyApp());
 }
