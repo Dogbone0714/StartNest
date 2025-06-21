@@ -122,6 +122,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     }
   }
 
+  void _showAnnouncementDetail(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: SingleChildScrollView(
+          child: Text(content),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('關閉'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
@@ -325,13 +343,41 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 )
                               : Column(
                                   children: _recentActivities.map((activity) {
+                                    final activityType = activity['type']?.toString() ?? '';
+                                    final activityTitle = activity['title']?.toString() ?? '';
+                                    final activityDescription = activity['description']?.toString() ?? '';
+                                    final metadata = activity['metadata'] ?? {};
+                                    
+                                    // 如果是公告類型，顯示完整內容
+                                    String displayContent = activityDescription;
+                                    if (activityType == 'announcement' && metadata['full_content'] != null) {
+                                      final fullContent = metadata['full_content'].toString();
+                                      // 限制內容長度，避免顯示過長
+                                      displayContent = fullContent.length > 100 
+                                          ? '${fullContent.substring(0, 100)}...' 
+                                          : fullContent;
+                                    }
+                                    
                                     return ListTile(
                                       leading: Icon(
-                                        _getActivityIcon(activity['type']?.toString() ?? ''),
-                                        color: _getActivityColor(activity['type']?.toString() ?? ''),
+                                        _getActivityIcon(activityType),
+                                        color: _getActivityColor(activityType),
                                       ),
-                                      title: Text(activity['title']?.toString() ?? ''),
-                                      subtitle: Text(activity['description']?.toString() ?? ''),
+                                      title: Text(activityTitle),
+                                      subtitle: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(displayContent),
+                                          if (activityType == 'announcement' && metadata['full_content'] != null)
+                                            TextButton(
+                                              onPressed: () {
+                                                _showAnnouncementDetail(metadata['title']?.toString() ?? '', 
+                                                                      metadata['full_content']?.toString() ?? '');
+                                              },
+                                              child: const Text('查看完整內容'),
+                                            ),
+                                        ],
+                                      ),
                                       trailing: Text(
                                         _formatTimeAgo(activity['created_at']?.toString()),
                                         style: const TextStyle(

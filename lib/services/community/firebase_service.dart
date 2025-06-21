@@ -497,7 +497,7 @@ class FirebaseService {
       });
 
       if (success) {
-        // 添加活動記錄
+        // 添加活動記錄，包含公告的完整內容
         await addActivity(
           'announcement',
           '發布公告',
@@ -507,6 +507,8 @@ class FirebaseService {
           metadata: {
             'announcement_id': id,
             'title': title,
+            'content': content,
+            'full_content': content, // 存儲完整內容用於顯示
           },
         );
         

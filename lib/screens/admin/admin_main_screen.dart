@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'admin_dashboard_screen.dart';
+import 'admin_home_screen.dart';
 import 'admin_announcements_screen.dart';
 import 'admin_maintenance_screen.dart';
 import 'admin_residents_screen.dart';
