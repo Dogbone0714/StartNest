@@ -439,4 +439,134 @@ class FirebaseService {
       return {'success': false, 'message': '註冊失敗：$e'};
     }
   }
+
+  // 公告相關操作
+  static Future<Map<String, dynamic>> getAllAnnouncements() async {
+    try {
+      final data = await _getData('announcements');
+      if (data != null) {
+        final announcements = data.entries.map((entry) {
+          final announcementData = entry.value as Map<dynamic, dynamic>;
+          return {
+            'id': entry.key,
+            'title': announcementData['title'],
+            'content': announcementData['content'],
+            'created_by': announcementData['created_by'],
+            'created_at': announcementData['created_at'],
+          };
+        }).toList();
+        
+        return {
+          'success': true,
+          'announcements': announcements,
+        };
+      }
+      return {'success': true, 'announcements': []};
+    } catch (e) {
+      return {'success': false, 'message': '獲取公告列表失敗：$e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> addAnnouncement(
+    String title,
+    String content,
+  ) async {
+    try {
+      final id = DateTime.now().millisecondsSinceEpoch.toString();
+      final success = await _setData('announcements/$id', {
+        'title': title,
+        'content': content,
+        'created_by': 'admin',
+        'created_at': DateTime.now().toIso8601String(),
+      });
+
+      if (success) {
+        return {'success': true, 'message': '公告新增成功'};
+      } else {
+        return {'success': false, 'message': '新增公告失敗'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '新增公告失敗：$e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteAnnouncement(String id) async {
+    try {
+      final success = await _deleteData('announcements/$id');
+      
+      if (success) {
+        return {'success': true, 'message': '公告刪除成功'};
+      } else {
+        return {'success': false, 'message': '刪除公告失敗'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '刪除公告失敗：$e'};
+    }
+  }
+
+  // 維修請求相關操作
+  static Future<Map<String, dynamic>> getAllMaintenanceRequests() async {
+    try {
+      final data = await _getData('maintenance_requests');
+      if (data != null) {
+        final requests = data.entries.map((entry) {
+          final requestData = entry.value as Map<dynamic, dynamic>;
+          return {
+            'id': entry.key,
+            'title': requestData['title'],
+            'description': requestData['description'],
+            'status': requestData['status'] ?? 'pending',
+            'created_by': requestData['created_by'],
+            'created_at': requestData['created_at'],
+          };
+        }).toList();
+        
+        return {
+          'success': true,
+          'requests': requests,
+        };
+      }
+      return {'success': true, 'requests': []};
+    } catch (e) {
+      return {'success': false, 'message': '獲取維修請求列表失敗：$e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> addMaintenanceRequest(
+    String title,
+    String description,
+  ) async {
+    try {
+      final id = DateTime.now().millisecondsSinceEpoch.toString();
+      final success = await _setData('maintenance_requests/$id', {
+        'title': title,
+        'description': description,
+        'status': 'pending',
+        'created_by': 'resident',
+        'created_at': DateTime.now().toIso8601String(),
+      });
+
+      if (success) {
+        return {'success': true, 'message': '維修請求提交成功'};
+      } else {
+        return {'success': false, 'message': '提交維修請求失敗'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': '提交維修請求失敗：$e'};
+    }
+  }
+
+  static Future<bool> updateMaintenanceRequestStatus(String id, String status) async {
+    try {
+      final success = await _updateData('maintenance_requests/$id', {
+        'status': status,
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+      
+      return success;
+    } catch (e) {
+      print('Error updating maintenance request status: $e');
+      return false;
+    }
+  }
 } 

@@ -37,6 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _navigateToHome() {
     final authService = Provider.of<AuthService>(context, listen: false);
+    
     if (authService.isAdmin) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const AdminHomeScreen()),
@@ -88,6 +89,55 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() {
           _isLoading = false;
         });
+      }
+    }
+  }
+
+  Future<void> _showInvitationCodeDialog() async {
+    final invitationCodeController = TextEditingController();
+    
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('輸入邀請碼'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('請輸入管理員提供的邀請碼'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: invitationCodeController,
+              decoration: const InputDecoration(
+                labelText: '邀請碼',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (invitationCodeController.text.isNotEmpty) {
+                Navigator.of(context).pop(invitationCodeController.text);
+              }
+            },
+            child: const Text('確定'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result.isNotEmpty) {
+      if (mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => RegisterScreen(invitationCode: result),
+          ),
+        );
       }
     }
   }
@@ -213,13 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                             const Text('還沒有帳號？'),
                             TextButton(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const RegisterScreen(),
-                                  ),
-                                );
-                              },
+                              onPressed: _showInvitationCodeDialog,
                               child: const Text('立即註冊'),
                             ),
                           ],

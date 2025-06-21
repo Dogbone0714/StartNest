@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/invitation_code.dart';
-import '../../services/community/serverpod_client_service.dart';
+import '../../services/community/firebase_service.dart';
+import '../../utils/constants/app_constants.dart';
 
 class AdminInvitationCodesScreen extends StatefulWidget {
   const AdminInvitationCodesScreen({super.key});
@@ -29,7 +30,7 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
     });
 
     try {
-      final result = await ServerpodClientService.getAllInvitationCodes();
+      final result = await FirebaseService.getAllInvitationCodes();
       if (result['success'] == true) {
         setState(() {
           _invitationCodes = List<Map<String, dynamic>>.from(result['codes']);
@@ -129,7 +130,7 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
       _showLoadingDialog('生成邀請碼中...');
       
       try {
-        final generateResult = await ServerpodClientService.generateInvitationCode(
+        final generateResult = await FirebaseService.generateInvitationCode(
           'admin',
           validDays: result['validDays'],
           unit: result['unit'].isNotEmpty ? result['unit'] : null,
@@ -201,22 +202,12 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
     }
   }
 
-  Future<void> _deleteInvitationCode(String code, bool isUsed) async {
-    if (isUsed) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('已使用的邀請碼無法刪除'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
+  Future<void> _deleteInvitationCode(String code) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('確認刪除'),
-        content: Text('確定要刪除邀請碼「$code」嗎？\n此操作無法撤銷。'),
+        content: Text('確定要刪除邀請碼「$code」嗎？'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -238,10 +229,10 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
       _showLoadingDialog('刪除邀請碼中...');
       
       try {
-        final result = await ServerpodClientService.deleteInvitationCode(code);
+        final result = await FirebaseService.deleteInvitationCode(code);
         
         Navigator.of(context).pop(); // 關閉載入對話框
-
+        
         if (result['success'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -287,8 +278,38 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
   }
 
   String _formatDateTime(String dateTimeString) {
-    final dateTime = DateTime.parse(dateTimeString);
-    return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    try {
+      final dateTime = DateTime.parse(dateTimeString);
+      return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return dateTimeString;
+    }
+  }
+
+  String _getStatusText(Map<String, dynamic> code) {
+    if (code['is_used'] == true) {
+      return '已使用';
+    }
+    
+    final expiresAt = DateTime.parse(code['expires_at']);
+    if (expiresAt.isBefore(DateTime.now())) {
+      return '已過期';
+    }
+    
+    return '有效';
+  }
+
+  Color _getStatusColor(Map<String, dynamic> code) {
+    if (code['is_used'] == true) {
+      return Colors.grey;
+    }
+    
+    final expiresAt = DateTime.parse(code['expires_at']);
+    if (expiresAt.isBefore(DateTime.now())) {
+      return Colors.red;
+    }
+    
+    return Colors.green;
   }
 
   @override
@@ -296,14 +317,9 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('邀請碼管理'),
-        backgroundColor: Colors.green[700],
+        backgroundColor: const Color(AppConstants.primaryColor),
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _generateInvitationCode,
-            tooltip: '生成邀請碼',
-          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadInvitationCodes,
@@ -345,7 +361,7 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            Icons.qr_code_outlined,
+                            Icons.vpn_key_outlined,
                             size: 64,
                             color: Colors.grey[400],
                           ),
@@ -358,10 +374,12 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
                             ),
                           ),
                           const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: _generateInvitationCode,
-                            icon: const Icon(Icons.add),
-                            label: const Text('生成邀請碼'),
+                          const Text(
+                            '點擊下方按鈕生成新的邀請碼',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
                           ),
                         ],
                       ),
@@ -372,119 +390,61 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
                         padding: const EdgeInsets.all(16),
                         itemCount: _invitationCodes.length,
                         itemBuilder: (context, index) {
-                          final codeData = _invitationCodes[index];
-                          final isUsed = codeData['isUsed'] ?? false;
-                          final isExpired = codeData['isExpired'] ?? false;
-                          final isValid = codeData['isValid'] ?? false;
-
+                          final code = _invitationCodes[index];
                           return Card(
                             margin: const EdgeInsets.only(bottom: 12),
                             child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: isValid 
-                                    ? Colors.green[100] 
-                                    : isUsed 
-                                        ? Colors.blue[100] 
-                                        : Colors.red[100],
-                                child: Icon(
-                                  isValid 
-                                      ? Icons.check_circle 
-                                      : isUsed 
-                                          ? Icons.person 
-                                          : Icons.error,
-                                  color: isValid 
-                                      ? Colors.green[700] 
-                                      : isUsed 
-                                          ? Colors.blue[700] 
-                                          : Colors.red[700],
-                                ),
-                              ),
                               title: Row(
                                 children: [
                                   Text(
-                                    codeData['code'],
+                                    code['code'],
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontFamily: 'monospace',
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  if (isValid)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green[100],
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        '有效',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.green[700],
-                                        ),
-                                      ),
-                                    )
-                                  else if (isUsed)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.blue[100],
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        '已使用',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.blue[700],
-                                        ),
-                                      ),
-                                    )
-                                  else
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.red[100],
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        '已過期',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.red[700],
-                                        ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _getStatusColor(code),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      _getStatusText(code),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
                                       ),
                                     ),
+                                  ),
                                 ],
                               ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('創建時間：${_formatDateTime(codeData['createdAt'])}'),
-                                  Text('過期時間：${_formatDateTime(codeData['expiresAt'])}'),
-                                  if (codeData['unit'] != null && codeData['unit'].isNotEmpty)
-                                    Text('預設房號：${codeData['unit']}'),
-                                  if (isUsed && codeData['usedBy'] != null)
-                                    Text('使用者：${codeData['usedBy']}'),
+                                  Text('創建時間：${_formatDateTime(code['created_at'])}'),
+                                  Text('過期時間：${_formatDateTime(code['expires_at'])}'),
+                                  if (code['unit'] != null && code['unit'].isNotEmpty)
+                                    Text('預設房號：${code['unit']}'),
+                                  if (code['is_used'] == true) ...[
+                                    Text('使用時間：${_formatDateTime(code['used_at'])}'),
+                                    Text('使用用戶：${code['used_by']}'),
+                                  ],
                                 ],
                               ),
                               trailing: PopupMenuButton<String>(
                                 onSelected: (value) {
                                   if (value == 'copy') {
-                                    Clipboard.setData(ClipboardData(text: codeData['code']));
+                                    Clipboard.setData(ClipboardData(text: code['code']));
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text('邀請碼已複製到剪貼板')),
                                     );
                                   } else if (value == 'delete') {
-                                    _deleteInvitationCode(codeData['code'], isUsed);
+                                    _deleteInvitationCode(code['code']);
                                   }
                                 },
                                 itemBuilder: (context) => [
@@ -492,23 +452,22 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
                                     value: 'copy',
                                     child: Row(
                                       children: [
-                                        Icon(Icons.copy),
+                                        Icon(Icons.copy, color: Colors.blue),
                                         SizedBox(width: 8),
-                                        Text('複製'),
+                                        Text('複製邀請碼', style: TextStyle(color: Colors.blue)),
                                       ],
                                     ),
                                   ),
-                                  if (!isUsed)
-                                    const PopupMenuItem(
-                                      value: 'delete',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.delete, color: Colors.red),
-                                          SizedBox(width: 8),
-                                          Text('刪除', style: TextStyle(color: Colors.red)),
-                                        ],
-                                      ),
+                                  const PopupMenuItem(
+                                    value: 'delete',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.delete, color: Colors.red),
+                                        SizedBox(width: 8),
+                                        Text('刪除', style: TextStyle(color: Colors.red)),
+                                      ],
                                     ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -516,6 +475,18 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
                         },
                       ),
                     ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _generateInvitationCode,
+        backgroundColor: const Color(AppConstants.primaryColor),
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
+      ),
     );
+  }
+
+  @override
+  void dispose() {
+    _unitController.dispose();
+    super.dispose();
   }
 } 

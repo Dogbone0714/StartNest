@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../services/community/serverpod_client_service.dart';
+import '../../services/community/firebase_service.dart';
+import '../../utils/constants/app_constants.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  final String invitationCode;
+
+  const RegisterScreen({super.key, required this.invitationCode});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -14,12 +17,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _nameController = TextEditingController();
-  final _invitationCodeController = TextEditingController();
   final _unitController = TextEditingController();
-  
   bool _isLoading = false;
-  String? _selectedRole;
-  String _building = '子敬園'; // 固定大樓名稱
 
   @override
   void dispose() {
@@ -27,7 +26,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _nameController.dispose();
-    _invitationCodeController.dispose();
     _unitController.dispose();
     super.dispose();
   }
@@ -41,73 +39,68 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       // 驗證邀請碼
-      final invitationResult = await ServerpodClientService.validateInvitationCode(
-        _invitationCodeController.text.trim(),
+      final invitationResult = await FirebaseService.validateInvitationCode(
+        widget.invitationCode,
       );
 
-      if (invitationResult == null || !invitationResult['success']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(invitationResult?['message'] ?? '邀請碼驗證失敗'),
-            backgroundColor: Colors.red,
-          ),
-        );
+      if (invitationResult['success'] != true) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(invitationResult['message'])),
+          );
+        }
         return;
       }
 
       // 使用邀請碼
-      final useResult = await ServerpodClientService.useInvitationCode(
-        _invitationCodeController.text.trim(),
-        _usernameController.text.trim(),
+      final useResult = await FirebaseService.useInvitationCode(
+        widget.invitationCode,
+        _usernameController.text,
       );
 
-      if (useResult == null || !useResult['success']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(useResult?['message'] ?? '使用邀請碼失敗'),
-            backgroundColor: Colors.red,
-          ),
-        );
+      if (useResult['success'] != true) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(useResult['message'])),
+          );
+        }
         return;
       }
 
       // 註冊用戶
-      final result = await ServerpodClientService.register(
-        _usernameController.text.trim(),
+      final result = await FirebaseService.register(
+        _usernameController.text,
         _passwordController.text,
-        _nameController.text.trim(),
-        _selectedRole ?? '住戶',
-        _building,
-        _unitController.text.trim(),
+        _nameController.text,
+        '住戶',
+        '子敬園',
+        _unitController.text,
       );
 
-      if (result != null && result['success']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('註冊成功！'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result?['message'] ?? '註冊失敗'),
-            backgroundColor: Colors.red,
-          ),
-        );
+      if (mounted) {
+        if (result['success']) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('註冊成功！請登入')),
+          );
+          Navigator.of(context).pop();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result['message'])),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('註冊失敗: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('註冊失敗：$e')),
+        );
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -116,179 +109,116 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('註冊'),
-        backgroundColor: Colors.green[700],
+        backgroundColor: const Color(AppConstants.primaryColor),
         foregroundColor: Colors.white,
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 20),
-              
-              // 邀請碼
-              TextFormField(
-                controller: _invitationCodeController,
-                decoration: const InputDecoration(
-                  labelText: '邀請碼 *',
-                  hintText: '請輸入管理員提供的邀請碼',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.vpn_key),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return '請輸入邀請碼';
-                  }
-                  return null;
-                },
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // 用戶名
-              TextFormField(
-                controller: _usernameController,
-                decoration: const InputDecoration(
-                  labelText: '用戶名 *',
-                  hintText: '請輸入用戶名',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return '請輸入用戶名';
-                  }
-                  if (value.length < 3) {
-                    return '用戶名至少需要3個字符';
-                  }
-                  return null;
-                },
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // 密碼
-              TextFormField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: '密碼 *',
-                  hintText: '請輸入密碼',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return '請輸入密碼';
-                  }
-                  if (value.length < 6) {
-                    return '密碼至少需要6個字符';
-                  }
-                  return null;
-                },
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // 確認密碼
-              TextFormField(
-                controller: _confirmPasswordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: '確認密碼 *',
-                  hintText: '請再次輸入密碼',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock_outline),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return '請確認密碼';
-                  }
-                  if (value != _passwordController.text) {
-                    return '兩次輸入的密碼不一致';
-                  }
-                  return null;
-                },
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // 姓名
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: '姓名 *',
-                  hintText: '請輸入真實姓名',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.badge),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return '請輸入姓名';
-                  }
-                  return null;
-                },
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // 房號
-              TextFormField(
-                controller: _unitController,
-                decoration: const InputDecoration(
-                  labelText: '房號 *',
-                  hintText: '請輸入房號（如：56-1號1樓、119-2號2樓）',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.home),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return '請輸入房號';
-                  }
-                  // 驗證房號格式（56-*號*樓 或 119-*號*樓）
-                  if (!RegExp(r'^(56|119)-\d+號\d+樓$').hasMatch(value.trim())) {
-                    return '房號格式：56-*號*樓 或 119-*號*樓';
-                  }
-                  return null;
-                },
-              ),
-              
-              const SizedBox(height: 20),
-              
-              // 註冊按鈕
-              ElevatedButton(
-                onPressed: _isLoading ? null : _register,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green[700],
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Text(
+                        '邀請碼：${widget.invitationCode}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        controller: _usernameController,
+                        decoration: const InputDecoration(
+                          labelText: '用戶名',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return '請輸入用戶名';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        decoration: const InputDecoration(
+                          labelText: '密碼',
+                          border: OutlineInputBorder(),
+                        ),
+                        obscureText: true,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return '請輸入密碼';
+                          }
+                          if (value.length < 6) {
+                            return '密碼至少6位';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _confirmPasswordController,
+                        decoration: const InputDecoration(
+                          labelText: '確認密碼',
+                          border: OutlineInputBorder(),
+                        ),
+                        obscureText: true,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return '請確認密碼';
+                          }
+                          if (value != _passwordController.text) {
+                            return '密碼不一致';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: '姓名',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return '請輸入姓名';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _unitController,
+                        decoration: const InputDecoration(
+                          labelText: '房號',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return '請輸入房號';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Text(
-                        '註冊',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
               ),
-              
-              const SizedBox(height: 16),
-              
-              // 返回登入
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('已有帳號？返回登入'),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _register,
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('註冊'),
               ),
             ],
           ),
