@@ -247,8 +247,14 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
                             vertical: 8,
                           ),
                           child: ListTile(
-                            title: Text(resident['name']),
-                            subtitle: Text('房號：${resident['unit']}'),
+                            title: Text(
+                              resident['name'],
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              '房號：${resident['unit']}',
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [

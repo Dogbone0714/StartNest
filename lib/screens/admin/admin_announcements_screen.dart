@@ -194,11 +194,20 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
                             vertical: 8,
                           ),
                           child: ListTile(
-                            title: Text(announcement['title']),
+                            title: Text(
+                              announcement['title'],
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(announcement['content']),
+                                Flexible(
+                                  child: Text(
+                                    announcement['content'],
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 3,
+                                  ),
+                                ),
                                 const SizedBox(height: 8),
                                 Text(
                                   '發布時間：${_formatDateTime(announcement['created_at'])}',

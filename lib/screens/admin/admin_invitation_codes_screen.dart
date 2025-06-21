@@ -416,11 +416,14 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
                             child: ListTile(
                               title: Row(
                                 children: [
-                                  Text(
-                                    code['code'],
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'monospace',
+                                  Flexible(
+                                    child: Text(
+                                      code['code'],
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'monospace',
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -446,13 +449,38 @@ class _AdminInvitationCodesScreenState extends State<AdminInvitationCodesScreen>
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('創建時間：${_formatDateTime(code['created_at'])}'),
-                                  Text('過期時間：${_formatDateTime(code['expires_at'])}'),
+                                  Flexible(
+                                    child: Text(
+                                      '創建時間：${_formatDateTime(code['created_at'])}',
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Flexible(
+                                    child: Text(
+                                      '過期時間：${_formatDateTime(code['expires_at'])}',
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                                   if (code['unit'] != null && code['unit'].isNotEmpty)
-                                    Text('預設房號：${code['unit']}'),
+                                    Flexible(
+                                      child: Text(
+                                        '預設房號：${code['unit']}',
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
                                   if (code['is_used'] == true) ...[
-                                    Text('使用時間：${_formatDateTime(code['used_at'])}'),
-                                    Text('使用用戶：${code['used_by']}'),
+                                    Flexible(
+                                      child: Text(
+                                        '使用時間：${_formatDateTime(code['used_at'])}',
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Flexible(
+                                      child: Text(
+                                        '使用用戶：${code['used_by']}',
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
                                   ],
                                 ],
                               ),

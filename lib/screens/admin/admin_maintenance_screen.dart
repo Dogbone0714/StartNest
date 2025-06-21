@@ -142,12 +142,19 @@ class _AdminMaintenanceScreenState extends State<AdminMaintenanceScreen> {
                               title: Text(
                                 request['title'],
                                 style: const TextStyle(fontWeight: FontWeight.bold),
+                                overflow: TextOverflow.ellipsis,
                               ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const SizedBox(height: 8),
-                                  Text(request['description']),
+                                  Flexible(
+                                    child: Text(
+                                      request['description'],
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 3,
+                                    ),
+                                  ),
                                   const SizedBox(height: 8),
                                   Row(
                                     children: [
@@ -169,11 +176,14 @@ class _AdminMaintenanceScreenState extends State<AdminMaintenanceScreen> {
                                         ),
                                       ),
                                       const Spacer(),
-                                      Text(
-                                        '提交時間：${request['created_at']}',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey,
+                                      Flexible(
+                                        child: Text(
+                                          '提交時間：${request['created_at']}',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                     ],

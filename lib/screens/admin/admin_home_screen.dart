@@ -367,7 +367,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                       subtitle: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(displayContent),
+                                          Flexible(
+                                            child: Text(
+                                              displayContent,
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 2,
+                                            ),
+                                          ),
                                           if (activityType == 'announcement' && metadata['full_content'] != null)
                                             TextButton(
                                               onPressed: () {
@@ -421,11 +427,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 color: color,
                 fontWeight: FontWeight.bold,
               ),
+              overflow: TextOverflow.ellipsis,
             ),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
+            Flexible(
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+              ),
             ),
           ],
         ),
@@ -455,13 +466,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 color: color,
               ),
               const SizedBox(height: AppConstants.paddingSmall),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: AppConstants.fontSizeMedium,
-                  fontWeight: FontWeight.bold,
+              Flexible(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: AppConstants.fontSizeMedium,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
-                textAlign: TextAlign.center,
               ),
             ],
           ),

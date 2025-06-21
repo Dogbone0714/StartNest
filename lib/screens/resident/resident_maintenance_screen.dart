@@ -190,12 +190,19 @@ class _ResidentMaintenanceScreenState extends State<ResidentMaintenanceScreen> {
                               title: Text(
                                 request['title'],
                                 style: const TextStyle(fontWeight: FontWeight.bold),
+                                overflow: TextOverflow.ellipsis,
                               ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const SizedBox(height: 8),
-                                  Text(request['description']),
+                                  Flexible(
+                                    child: Text(
+                                      request['description'],
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 3,
+                                    ),
+                                  ),
                                   const SizedBox(height: 8),
                                   Row(
                                     children: [
@@ -217,11 +224,14 @@ class _ResidentMaintenanceScreenState extends State<ResidentMaintenanceScreen> {
                                         ),
                                       ),
                                       const Spacer(),
-                                      Text(
-                                        '提交時間：${_formatDateTime(request['created_at'])}',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey,
+                                      Flexible(
+                                        child: Text(
+                                          '提交時間：${_formatDateTime(request['created_at'])}',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                     ],
