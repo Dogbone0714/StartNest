@@ -74,14 +74,15 @@ class FirebaseService {
     try {
       final data = await _getData('users/$username');
       if (data != null && data['password'] == password) {
+        final userData = data as Map<dynamic, dynamic>;
         return {
           'success': true,
           'user': {
-            'username': data['username'],
-            'name': data['name'],
-            'role': data['role'],
-            'building': data['building'],
-            'unit': data['unit'],
+            'username': userData['username']?.toString() ?? username,
+            'name': userData['name']?.toString() ?? '未知用戶',
+            'role': userData['role']?.toString() ?? '住戶',
+            'building': userData['building']?.toString() ?? '',
+            'unit': userData['unit']?.toString() ?? '',
           },
         };
       }
@@ -95,14 +96,15 @@ class FirebaseService {
     try {
       final data = await _getData('users/$username');
       if (data != null) {
+        final userData = data as Map<dynamic, dynamic>;
         return {
           'success': true,
           'user': {
-            'username': data['username'],
-            'name': data['name'],
-            'role': data['role'],
-            'building': data['building'],
-            'unit': data['unit'],
+            'username': userData['username']?.toString() ?? username,
+            'name': userData['name']?.toString() ?? '未知用戶',
+            'role': userData['role']?.toString() ?? '住戶',
+            'building': userData['building']?.toString() ?? '',
+            'unit': userData['unit']?.toString() ?? '',
           },
         };
       }

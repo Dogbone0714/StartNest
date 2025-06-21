@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/community/auth_service.dart';
 import '../../utils/constants/app_constants.dart';
 import '../resident/resident_home_screen.dart';
-import '../admin/admin_home_screen.dart';
+import '../admin/admin_main_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -40,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
     
     if (authService.isAdmin) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const AdminHomeScreen()),
+        MaterialPageRoute(builder: (_) => const AdminMainScreen()),
       );
     } else {
       Navigator.of(context).pushReplacement(

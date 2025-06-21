@@ -9,14 +9,14 @@ import 'admin_residents_screen.dart';
 import 'admin_profile_screen.dart';
 import 'admin_invitation_codes_screen.dart';
 
-class AdminHomeScreen extends StatefulWidget {
-  const AdminHomeScreen({super.key});
+class AdminDashboardScreen extends StatefulWidget {
+  const AdminDashboardScreen({super.key});
 
   @override
-  State<AdminHomeScreen> createState() => _AdminHomeScreenState();
+  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
 }
 
-class _AdminHomeScreenState extends State<AdminHomeScreen> {
+class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Map<String, dynamic> _stats = {};
   List<Map<String, dynamic>> _recentActivities = [];
   bool _isLoading = true;
@@ -64,7 +64,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     }
   }
 
-  String _formatTimeAgo(String dateTimeString) {
+  String _formatTimeAgo(String? dateTimeString) {
+    if (dateTimeString == null || dateTimeString.isEmpty) {
+      return '未知時間';
+    }
+    
     try {
       final dateTime = DateTime.parse(dateTimeString);
       final now = DateTime.now();
@@ -124,7 +128,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     
     return Scaffold(
       appBar: AppBar(
-        title: Text('子敬園管理 - ${authService.userName}'),
+        title: Text('子敬園管理 - ${authService.userName.isNotEmpty ? authService.userName : '管理員'}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications),
@@ -323,13 +327,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                   children: _recentActivities.map((activity) {
                                     return ListTile(
                                       leading: Icon(
-                                        _getActivityIcon(activity['type']),
-                                        color: _getActivityColor(activity['type']),
+                                        _getActivityIcon(activity['type']?.toString() ?? ''),
+                                        color: _getActivityColor(activity['type']?.toString() ?? ''),
                                       ),
-                                      title: Text(activity['title']),
-                                      subtitle: Text(activity['description']),
+                                      title: Text(activity['title']?.toString() ?? ''),
+                                      subtitle: Text(activity['description']?.toString() ?? ''),
                                       trailing: Text(
-                                        _formatTimeAgo(activity['created_at']),
+                                        _formatTimeAgo(activity['created_at']?.toString()),
                                         style: const TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey,

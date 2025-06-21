@@ -15,12 +15,10 @@ class ResidentHomeScreen extends StatefulWidget {
 
 class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
   int _currentIndex = 0;
-
-  final List<Widget> _screens = [
-    const ResidentDashboard(),
-    const ResidentAnnouncementsScreen(),
-    const ResidentMaintenanceScreen(),
-    const ResidentProfileScreen(),
+  final List<Widget> _pages = const [
+    ResidentAnnouncementsScreen(),
+    ResidentMaintenanceScreen(),
+    ResidentProfileScreen(),
   ];
 
   @override
@@ -39,9 +37,8 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
           ),
         ],
       ),
-      body: _screens[_currentIndex],
+      body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
@@ -49,10 +46,6 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
           });
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: '首頁',
-          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.announcement),
             label: '公告',
@@ -63,7 +56,7 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: '個人',
+            label: '個人資料',
           ),
         ],
       ),
